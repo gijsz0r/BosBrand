@@ -7,6 +7,7 @@ public class Forest {
 	public Forest() {
 		//Create new Squares
 		
+		//Comment for test commit
 	}
 	
 }
