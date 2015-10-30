@@ -1,4 +1,4 @@
-package bosBrand;
+package BosBrand;
 
 public enum TreeType {
 	PALM, ELM, WILLOW, OAK, PINE;

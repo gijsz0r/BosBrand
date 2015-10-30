@@ -1,4 +1,4 @@
-package bosBrand;
+package BosBrand;
 
 import java.awt.Point;
 

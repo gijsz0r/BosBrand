@@ -1,4 +1,4 @@
-package bosBrand
+package BosBrand
 
 public class Forest {
 
