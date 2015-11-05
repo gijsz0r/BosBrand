@@ -3,7 +3,7 @@ package BosBrand;
 public enum TreeType {
 	PALM, ELM, WILLOW, OAK, PINE;
 
-	public int getHP(TreeType type) {
+	public static int getHP(TreeType type) {
 		switch(type) {
 			case PALM:
 				return 1;

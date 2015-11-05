@@ -7,7 +7,7 @@ public class Square {
 	private boolean isRaining;
 		
 	public Square(TreeType treeType) {
-		this.treeHP = TreeType.getHP(treeType)*TREE_HP_MODIFIER;
+		this.treeHP = TreeType.getHP(treeType)*BosBrandConstants.TREE_HP_MODIFIER;
 		this.isBurning = false;
 		this.isRaining = false;
 	}
