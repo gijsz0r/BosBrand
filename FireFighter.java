@@ -1,6 +1,9 @@
 package BosBrand;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.stream.Collectors;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.query.space.grid.GridCell;
@@ -16,6 +19,7 @@ public class FireFighter {
 	private Grid<Object> grid;
 	private boolean moved;
 	private static int lookingDistance = 2;
+	public boolean fightingFire;
 
 	public FireFighter(Grid<Object> grid) {
 		this.grid = grid;
@@ -26,23 +30,91 @@ public class FireFighter {
 		// Get the grid location of this FireFighter
 		GridPoint pt = grid.getLocation(this);
 
-		GridCellNgh<Fire> neighbourhoodCreator = new GridCellNgh<Fire>(grid,
-				pt, Fire.class, lookingDistance, lookingDistance);
-
-		List<GridCell<Fire>> gridCells = neighbourhoodCreator
-				.getNeighborhood(true);
 		// SimUtilities.shuffle(gridCells, RandomHelper.getUniform());
 
 		// Make a list with all cells containing allies
+		GridCellNgh<FireFighter> allyNeighbourHoodCreator = new GridCellNgh<FireFighter>(
+				grid, pt, FireFighter.class, lookingDistance, lookingDistance);
+		List<GridCell<FireFighter>> allyGridCells = allyNeighbourHoodCreator
+				.getNeighborhood(false);
 		// Check if any ally is currently fighting fire
-		// If any, maybe communicate?
-		// Maybe sense closest fire?
+		List<GridCell<FireFighter>> fightingAllies = allyGridCells.stream()
+				.filter(i -> i.items().iterator().next().fightingFire)
+				.collect(Collectors.toList());
+		// If any
+		if (fightingAllies.size() > 0) {
+			GridCell<FireFighter> ally = null;
+			// Debug
+			System.out.println(String.format(
+					"Found %d nearby allies fighting fire!",
+					fightingAllies.size()));
+			// Sense closest
+			OptionalInt minDistance = fightingAllies.stream()
+					.mapToInt(i -> (int) grid.getDistance(pt, i.getPoint()))
+					.min();
+			// Debug
+			if (minDistance.isPresent()) {
+				System.out.println(String.format(
+						"Nearest fighting ally distance: %d",
+						minDistance.getAsInt()));
+				// Get the point of the closest fighting ally
+				Optional<GridCell<FireFighter>> close = fightingAllies
+						.stream()
+						.filter(i -> (int) grid.getDistance(pt, i.getPoint()) == minDistance
+								.getAsInt()).findFirst();
+				if (close.isPresent()) {
+					ally = close.get();
+				}
+			} else {
+				System.out
+						.println("No distance to nearest fighting ally found.");
+			}
 
-		// Make a list with all cells containing fire
-		// Check which fire is closest
-		// Move there
+			// Move towards the closest fighting ally
+			if (ally != null) {
+				moveTowards(ally.getPoint());
+			}
+		} else {
+			// Make a list with all cells containing fire
+			GridCellNgh<Fire> fireNeighbourhoodCreator = new GridCellNgh<Fire>(
+					grid, pt, Fire.class, lookingDistance, lookingDistance);
+			List<GridCell<Fire>> fireGridCells = fireNeighbourhoodCreator
+					.getNeighborhood(true);
+			// Check if any fires were detected
+			if (fireGridCells.size() > 0) {
+				GridCell<Fire> fire = null;
+				// Debug
+				System.out.println(String.format("Found %d nearby fires!",
+						fireGridCells.size()));
+				// Check which fire is closest
+				OptionalInt minDistance = fireGridCells
+						.stream()
+						.mapToInt(i -> (int) grid.getDistance(pt, i.getPoint()))
+						.min();
+				if (minDistance.isPresent()) {
+					System.out
+							.println(String.format("Nearest fire distance: %d",
+									minDistance.getAsInt()));
+					// Get the point of the closest fire
+					Optional<GridCell<Fire>> close = fireGridCells
+							.stream()
+							.filter(i -> (int) grid.getDistance(pt,
+									i.getPoint()) == minDistance.getAsInt())
+							.findFirst();
+					if (close.isPresent()) {
+						fire = close.get();
+					}
+				} else {
+					System.out.println("No distance found to closest fire.");
+				}
 
-		// moveTowards(pointWithMostFire);
+				// Move towards the closest fire
+				if (fire != null) {
+					moveTowards(fire.getPoint());
+				}
+			}
+			// No fire found, patrol
+		}
 	}
 
 	public void moveTowards(GridPoint pt) {
