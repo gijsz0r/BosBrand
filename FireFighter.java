@@ -5,19 +5,16 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
+import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.query.space.grid.GridCell;
 import repast.simphony.query.space.grid.GridCellNgh;
-import repast.simphony.random.RandomHelper;
-import repast.simphony.space.SpatialMath;
 import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridPoint;
-import repast.simphony.util.SimUtilities;
 
 public class FireFighter {
 
 	private Grid<Object> grid;
-	private boolean moved;
 	private static int lookingDistance = 2;
 	public boolean fightingFire;
 
@@ -25,12 +22,14 @@ public class FireFighter {
 		this.grid = grid;
 	}
 
-	@ScheduledMethod(start = 1, interval = 1)
+	public FireFighter() {
+
+	}
+
+	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.RANDOM_PRIORITY)
 	public void step() {
 		// Get the grid location of this FireFighter
 		GridPoint pt = grid.getLocation(this);
-
-		// SimUtilities.shuffle(gridCells, RandomHelper.getUniform());
 
 		// Make a list with all cells containing allies
 		GridCellNgh<FireFighter> allyNeighbourHoodCreator = new GridCellNgh<FireFighter>(
@@ -114,21 +113,22 @@ public class FireFighter {
 				}
 			}
 			// No fire found, patrol
+
 		}
 	}
 
 	public void moveTowards(GridPoint pt) {
-		// only move if we are not already in this grid location
+		// Only move if we are not already in this grid location
 		if (!pt.equals(grid.getLocation(this))) {
 			GridPoint myPoint = grid.getLocation(this);
 			GridPoint otherPoint = new GridPoint(pt.getX(), pt.getY());
-
-			Direction angle = Direction.getDirection(myPoint, otherPoint);
+			// Determine the direction we want to move in
+			Direction direction = Direction.getDirection(myPoint, otherPoint);
 
 			// TODO: check speed
 			int mySpeed = 1;
 
-			switch (angle) {
+			switch (direction) {
 			case NORTH:
 				grid.moveByVector(this, mySpeed,
 						repast.simphony.space.Direction.NORTH);
@@ -165,9 +165,16 @@ public class FireFighter {
 				// TODO: handle this (error?)
 			}
 
+			// We have moved to a new location
 			myPoint = grid.getLocation(this);
-
-			moved = true;
 		}
+	}
+
+	public GridPoint getLocation() {
+		return grid.getLocation(this);
+	}
+
+	public void patrol() {
+		// TODO: implement
 	}
 }
