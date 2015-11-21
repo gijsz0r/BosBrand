@@ -10,6 +10,11 @@ import repast.simphony.space.grid.GridPoint;
 public enum Direction {
 	NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST;
 
+	public static ArrayList<Direction> getAllDirections() {
+		return new ArrayList<Direction>(Arrays.asList(NORTH, NORTHEAST, EAST,
+				SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST));
+	}
+
 	public static Direction getDirection(Point from, Point to) {
 		// We assume here that the X-axis is along the West-East line and the
 		// Y-axis is along the North-South line
@@ -45,23 +50,35 @@ public enum Direction {
 
 	public static Iterable<Object> getObjectsInAdjacentDirection(
 			Direction direction, Grid<Object> grid, GridPoint origin) {
+		// We assume here that the X-axis is along the West-East line and the
+		// Y-axis is along the North-South line
 		switch (direction) {
 		case NORTHWEST:
-			// North west neighbour is 1 index lower in X and 1 index lower in Y
+			// North west: 1 index lower in X and 1 index lower in Y
 			return grid.getObjectsAt(origin.getX() - 1, origin.getY() - 1);
 		case NORTH:
-			// North neighbour is equal in X and 1 index lower in Y
+			// North: equal in X and 1 index lower in Y
 			return grid.getObjectsAt(origin.getX(), origin.getY() - 1);
 		case NORTHEAST:
-			// North east neighbour is
-			// TODO: finish
+			// North east: 1 index higher in X and 1 index lower in Y
+			return grid.getObjectsAt(origin.getX() + 1, origin.getY() - 1);
+		case EAST:
+			// East: 1 index higher in X and equal in Y
+			return grid.getObjectsAt(origin.getX() + 1, origin.getY());
+		case SOUTHEAST:
+			// South east: 1 index higher in X and 1 index higher in Y
+			return grid.getObjectsAt(origin.getX() + 1, origin.getY() + 1);
+		case SOUTH:
+			// South: equal in X and 1 index higher in Y
+			return grid.getObjectsAt(origin.getX(), origin.getY() + 1);
+		case SOUTHWEST:
+			// South west: 1 index lower in X and 1 index higher in Y
+			return grid.getObjectsAt(origin.getX() - 1, origin.getY() + 1);
+		case WEST:
+			// West: 1 index lower in X and equal in Y
+			return grid.getObjectsAt(origin.getX() - 1, origin.getY());
 		default:
 			return null;
 		}
-	}
-
-	public static ArrayList<Direction> getAllDirections() {
-		return new ArrayList<Direction>(Arrays.asList(NORTH, NORTHEAST, EAST,
-				SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST));
 	}
 }
