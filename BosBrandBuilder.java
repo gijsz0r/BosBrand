@@ -11,16 +11,18 @@ import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridBuilderParameters;
 import repast.simphony.space.grid.GridPoint;
 import repast.simphony.space.grid.SimpleGridAdder;
+import repast.simphony.space.grid.StrictBorders;
 import repast.simphony.space.grid.WrapAroundBorders;
 
 public class BosBrandBuilder implements ContextBuilder<Object> {
 
+	@Override
 	public Context<Object> build(Context<Object> context) {
-		context.setId("basBrand");
+		context.setId("BosBrand");
 
 		GridFactory gridFactory = GridFactoryFinder.createGridFactory(null);
 
-		Grid<Object> grid = gridFactory.createGrid("forest", context,
+		Grid<Object> grid = gridFactory.createGrid("grid", context,
 				new GridBuilderParameters<Object>(new WrapAroundBorders(),
 						new SimpleGridAdder<Object>(), true,
 						BosBrandConstants.FOREST_HEIGHT,
@@ -88,6 +90,9 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 			}
 		}
 
+		//we add the environment that controls various environmental elements
+		context.add(new Environment(grid));
+		System.out.println("Added environment!");
 		// Return the created context
 		return context;
 	}

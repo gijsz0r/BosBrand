@@ -11,27 +11,27 @@ public class Tree {
 		this.isBurning = false;
 		this.isRaining = false;
 	}
-	
+
 	public int getCurrentHP() {
 		return treeHP;
 	}
-	
+
 	public void setCurrentHP(int hp) {
 		treeHP = hp;
 	}
-	
+
 	public boolean getIsBurning() {
 		return isBurning;
 	}
-	
+
 	public void toggleBurning() {
 		isBurning = !isBurning;
 	}
-	
+
 	public boolean getIsRaining() {
 		return isRaining;
 	}
-	
+
 	public void toggleRaining() {
 		isRaining = !isRaining;
 	}

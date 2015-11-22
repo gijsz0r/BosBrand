@@ -7,32 +7,32 @@ import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridPoint;
+import repast.simphony.util.ContextUtils;
 
 public class Fire {
 
 	private Grid<Object> grid;
+	private	Random r = new Random();
 
 	public Fire(Grid<Object> grid) {
 		this.grid = grid;
 	}
 
 	public Fire() {
-
+		System.out.println("Careful! You're using the empty constructor for fire! if you don't want to do this, turn back now");
 	}
 
 	public GridPoint getLocation() {
 		return grid.getLocation(this);
 	}
 
-	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.RANDOM_PRIORITY)
+	 @ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.RANDOM_PRIORITY)
 	public void step() {
-		// Check if any trees spontaneously combust
-		// TODO: implement
-
 		// Get the grid location of this Fire
 		GridPoint pt = grid.getLocation(this);
 
@@ -56,8 +56,21 @@ public class Fire {
 						&& !neighbourTree.getIsBurning()) {
 					// Chance of Fire moving = Base Chance + Rain Modifier +
 					// Wind Modifier
-					Random r = new Random();
 					// TODO: implement
+					if (r.nextDouble() <= BosBrandConstants.CHANCE_OF_FIRE_SPREADING) {
+						// create new fire
+						Fire fire = new Fire(grid);
+						// add fire to context
+						Context<Object> context = ContextUtils.getContext(this);
+						if (context.add(fire)) {
+							// if fire was successfully added, set tree on
+							// fire and put the fire in the grid
+							GridPoint treeLocation = grid.getLocation(neighbourTree);
+							grid.moveTo(fire, treeLocation.getX(),
+									treeLocation.getY());
+							neighbourTree.toggleBurning();
+						}
+					}
 				}
 			}
 		}
