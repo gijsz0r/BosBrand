@@ -26,29 +26,30 @@ public class Environment {
 		// Check if rain moves
 		// TODO: implement rain
 
+		// Get the context this environment is in, and get all Tree objects
 		Context<Object> context = ContextUtils.getContext(this);
 		IndexedIterable<Object> trees = context.getObjects(Tree.class);
-		// loop over all trees
+		// Loop over all trees
 		for (Object obj : trees) {
 			if (obj instanceof Tree) {
 				Tree tree = (Tree) (obj);
-				// check if tree is not dead
+				// Check if the tree is not dead
 				if (tree.getCurrentHP() > 0) {
-					// check if tree is already burning
+					// Check if the tree is already burning
 					if (tree.getIsBurning()) {
-						// Reduce Tree HP
+						// Reduce tree HP
 						tree.setCurrentHP(tree.getCurrentHP()
 								- BosBrandConstants.TREE_BURNING_SPEED);
 					} else {
-						// if it is not burning, check if the Tree spontaneously
+						// Tree is not burning, check if the tree spontaneously
 						// combusts
 						if (random.nextDouble() <= BosBrandConstants.TREE_CHANCE_OF_COMBUSTION) {
-							// create new fire
+							// Create a new Fire object
 							Fire fire = new Fire(grid);
-							// add fire to context
+							// Add Fire to the context
 							if (context.add(fire)) {
-								// if fire was successfully added, set tree on
-								// fire and put the fire in the grid
+								// If the Fire was successfully added, set tree on
+								// fire and put the Fire object on the grid
 								GridPoint treeLocation = grid.getLocation(tree);
 								grid.moveTo(fire, treeLocation.getX(),
 										treeLocation.getY());

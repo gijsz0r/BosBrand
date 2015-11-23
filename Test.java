@@ -16,6 +16,7 @@ public class Test {
 			int y = (int) (i / BosBrandConstants.FOREST_WIDTH);
 			// Place the Tree in the correct location on the grid
 			
+			// Debug
 			System.out.println(String.format("Trying to place Tree on %d,%d", x, y));
 
 			forest[x][y] = new Tree(treeType);

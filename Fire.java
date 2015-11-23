@@ -56,15 +56,14 @@ public class Fire {
 						&& !neighbourTree.getIsBurning()) {
 					// Chance of Fire moving = Base Chance + Rain Modifier +
 					// Wind Modifier
-					// TODO: implement
 					if (r.nextDouble() <= BosBrandConstants.CHANCE_OF_FIRE_SPREADING) {
-						// create new fire
+						// Create a new Fire object
 						Fire fire = new Fire(grid);
-						// add fire to context
+						// Add the Fire to the context
 						Context<Object> context = ContextUtils.getContext(this);
 						if (context.add(fire)) {
-							// if fire was successfully added, set tree on
-							// fire and put the fire in the grid
+							// If the Fire was successfully added, set the tree on
+							// cell on fire and place the Fire on the grid
 							GridPoint treeLocation = grid.getLocation(neighbourTree);
 							grid.moveTo(fire, treeLocation.getX(),
 									treeLocation.getY());

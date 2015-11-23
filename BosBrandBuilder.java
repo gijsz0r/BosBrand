@@ -18,20 +18,24 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 
 	@Override
 	public Context<Object> build(Context<Object> context) {
+		// Set ID for the context. Note: should be same as package
 		context.setId("BosBrand");
-
+		// Create a grid. Note: name should be 'grid' for some reason
+		// Parameters are type of border handling, how to add items to the grid
+		// and the dimensions of the grid
 		GridFactory gridFactory = GridFactoryFinder.createGridFactory(null);
-
 		Grid<Object> grid = gridFactory.createGrid("grid", context,
 				new GridBuilderParameters<Object>(new WrapAroundBorders(),
 						new SimpleGridAdder<Object>(), true,
 						BosBrandConstants.FOREST_HEIGHT,
 						BosBrandConstants.FOREST_WIDTH));
-
-		// Set the tree for this run
+						
+		// Set the tree type for this run
 		TreeType treeType = TreeType.PALM;
+		// We are making a tree on each cell
 		for (int i = 0; i < BosBrandConstants.FOREST_HEIGHT
 				* BosBrandConstants.FOREST_WIDTH; i++) {
+			// Add the Tree objects to the context
 			context.add(new Tree(treeType));
 		}
 		// Place each created Tree on a location in the grid
@@ -90,9 +94,11 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 			}
 		}
 
-		//we add the environment that controls various environmental elements
+		// We add the environment that controls various environmental elements
 		context.add(new Environment(grid));
-		System.out.println("Added environment!");
+		// Debug
+		System.out.println("Environment created!");
+		
 		// Return the created context
 		return context;
 	}

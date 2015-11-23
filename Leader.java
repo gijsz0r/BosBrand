@@ -8,6 +8,7 @@ import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.grid.Grid;
 
+@Deprecated
 public class Leader extends FireFighter {
 
 	private Grid<Object> grid;

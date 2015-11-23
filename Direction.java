@@ -21,6 +21,7 @@ public enum Direction {
 		// Also, in RePast the 0,0 cell is at the bottom left of the grid
 		int dX = to.x - from.x;
 		int dY = to.y - from.y;
+		// Debug
 		System.out.println(String.format("dX: %d ; dY: %d", dX, dY));
 
 		if (dX < 0 && dY < 0)
@@ -40,14 +41,14 @@ public enum Direction {
 		if (dX < 0 && dY == 0)
 			return WEST; // lower west-east, equal north-south: West
 		else
-			System.out.println("Error in Direction...");
-		return NORTH; // TODO: handle this error
+			System.out.println("Error in Direction.getDirection");
+			return NORTH; // TODO: handle this error
 	}
 
 	public static Direction getDirection(GridPoint from, GridPoint to) {
 		Point newFrom = new Point(from.getX(), from.getY());
 		Point toFrom = new Point(to.getX(), to.getY());
-
+		// Call the getDirection method with the newly created Point objects
 		return getDirection(newFrom, toFrom);
 	}
 
@@ -82,7 +83,7 @@ public enum Direction {
 			// West: 1 index lower in X and equal in Y
 			return grid.getObjectsAt(origin.getX() - 1, origin.getY());
 		default:
-			System.out.println("Error in (getObjects) Direction...");
+			System.out.println("Error in Direction.getObjects");
 			return null; // TODO: handle this error
 		}
 	}
