@@ -6,8 +6,7 @@ public class Test {
 		Tree[][] forest = new Tree[BosBrandConstants.FOREST_HEIGHT][BosBrandConstants.FOREST_WIDTH];		
 		TreeType treeType = TreeType.PALM;
 		for (int i = 0; i < BosBrandConstants.FOREST_HEIGHT
-				* BosBrandConstants.FOREST_WIDTH; i++) {
-		
+				* BosBrandConstants.FOREST_WIDTH; i++) {		
 			// The X-coordinate for this Tree will be the modulus of the width
 			// of the forest
 			int x = i % BosBrandConstants.FOREST_WIDTH;
