@@ -4,15 +4,68 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import repast.simphony.random.RandomHelper;
 import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridPoint;
+import repast.simphony.util.SimUtilities;
 
 public enum Direction {
-	NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST;
+	NORTHWEST, NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST;
 
 	public static ArrayList<Direction> getAllDirections() {
-		return new ArrayList<Direction>(Arrays.asList(NORTH, NORTHEAST, EAST,
-				SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST));
+		return new ArrayList<Direction>(Arrays.asList(NORTHWEST, NORTH,
+				NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST));
+	}
+
+	public static ArrayList<Direction> getAllDirectionsShuffled() {
+		// Get all directions
+		ArrayList<Direction> tempList = getAllDirections();
+		// Shuffle them
+		SimUtilities.shuffle(tempList, RandomHelper.getUniform());
+		// Return the shuffled list
+		return tempList;
+	}
+
+	public static ArrayList<Direction> getAdjacentDirections(Direction direction) {
+		return getAdjacentDirections(direction, false);
+	}
+
+	public static ArrayList<Direction> getAdjacentDirections(
+			Direction direction, boolean includeSelf) {
+		ArrayList<Direction> directions = new ArrayList<Direction>();
+		// Return the directions next to the provided direction
+		switch (direction) {
+		case NORTHWEST:
+			directions.add(WEST);
+			directions.add(NORTH);
+		case NORTH:
+			directions.add(NORTHWEST);
+			directions.add(NORTHEAST);
+		case NORTHEAST:
+			directions.add(NORTH);
+			directions.add(EAST);
+		case EAST:
+			directions.add(NORTHEAST);
+			directions.add(SOUTHEAST);
+		case SOUTHEAST:
+			directions.add(EAST);
+			directions.add(SOUTH);
+		case SOUTH:
+			directions.add(SOUTHEAST);
+			directions.add(SOUTHWEST);
+		case SOUTHWEST:
+			directions.add(SOUTH);
+			directions.add(WEST);
+		case WEST:
+			directions.add(SOUTHWEST);
+			directions.add(NORTHWEST);
+		default:
+
+		}
+		// Include our own direction if requested
+		if (includeSelf)
+			directions.add(direction);
+		return directions;
 	}
 
 	public static Direction getDirection(Point from, Point to) {
@@ -40,9 +93,13 @@ public enum Direction {
 			return NORTHWEST; // lower west-east, higher north-south: NorthWest
 		if (dX < 0 && dY == 0)
 			return WEST; // lower west-east, equal north-south: West
-		else
-			System.out.println("Error in Direction.getDirection");
-			return NORTH; // TODO: handle this error
+		else {
+			// TODO: handle this error
+			System.out.println(String.format(
+					"Unknown relative coordinates in Direction.getDirection",
+					dX, dY));
+			return null;
+		}
 	}
 
 	public static Direction getDirection(GridPoint from, GridPoint to) {
@@ -83,8 +140,59 @@ public enum Direction {
 			// West: 1 index lower in X and equal in Y
 			return grid.getObjectsAt(origin.getX() - 1, origin.getY());
 		default:
-			System.out.println("Error in Direction.getObjects");
+			System.out
+					.println("Unknown Direction value found in Direction.getObjects");
 			return null; // TODO: handle this error
 		}
+	}
+
+	public static boolean canIMoveInDirection(GridPoint point,
+			Direction direction) {
+		// Check if we are using WrapAroundBorders, because in that case we can
+		// just return true
+		if (BosBrandConstants.BORDER_TYPE instanceof repast.simphony.space.grid.WrapAroundBorders)
+			return true;
+		// Determine if the coordinates are on any of the borders of the grid
+		boolean notOnNorthBorder = point.getY() < BosBrandConstants.FOREST_HEIGHT - 1;
+		boolean notOnEastBorder = point.getX() < BosBrandConstants.FOREST_WIDTH - 1;
+		boolean notOnWestBorder = point.getX() > 0;
+		boolean notOnSouthBorder = point.getY() > 0;
+		boolean movementAllowed = false;
+		// For each direction we check if the current X and Y coordinates
+		switch (direction) {
+		case NORTHWEST:
+			movementAllowed = notOnNorthBorder && notOnWestBorder;
+			break;
+		case NORTH:
+			movementAllowed = notOnNorthBorder;
+			break;
+		case NORTHEAST:
+			movementAllowed = notOnNorthBorder && notOnEastBorder;
+			break;
+		case EAST:
+			movementAllowed = notOnEastBorder;
+			break;
+		case SOUTHEAST:
+			movementAllowed = notOnSouthBorder && notOnEastBorder;
+			break;
+		case SOUTH:
+			movementAllowed = notOnSouthBorder;
+			break;
+		case SOUTHWEST:
+			movementAllowed = notOnSouthBorder && notOnWestBorder;
+			break;
+		case WEST:
+			movementAllowed = notOnWestBorder;
+			break;
+		default:
+			movementAllowed = false;
+			break;
+		}
+		// Debug
+		// if (!movementAllowed)
+		// System.out.println(String.format(
+		// "Impossible move: from (%d,%d) in %s direction",
+		// point.getX(), point.getY(), direction));
+		return movementAllowed;
 	}
 }

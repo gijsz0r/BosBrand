@@ -1,7 +1,6 @@
 package BosBrand;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -49,10 +48,12 @@ public class FireFighter {
 				return;
 			}
 		}
-		
+
 		// Make a list with all cells containing allies
 		GridCellNgh<FireFighter> allyNeighbourHoodCreator = new GridCellNgh<FireFighter>(
-				grid, pt, FireFighter.class, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
+				grid, pt, FireFighter.class,
+				BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE,
+				BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
 		List<GridCell<FireFighter>> gridCells = allyNeighbourHoodCreator
 				.getNeighborhood(true);
 		// Debug
@@ -136,9 +137,11 @@ public class FireFighter {
 	public GridPoint checkForFire(GridPoint pt) {
 		// Make a list with all cells containing fire
 		GridCellNgh<Fire> fireNeighbourhoodCreator = new GridCellNgh<Fire>(
-				grid, pt, Fire.class, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
+				grid, pt, Fire.class,
+				BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE,
+				BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
 		List<GridCell<Fire>> gridCells = fireNeighbourhoodCreator
-				.getNeighborhood(false);
+				.getNeighborhood(true);
 		// Filter on GridCells containing at least one item
 		List<GridCell<Fire>> fireGridCells = gridCells.stream()
 				.filter(i -> i.items().iterator().hasNext())
@@ -179,6 +182,7 @@ public class FireFighter {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void extinguishFire(GridPoint pt) {
 		// Loop through the objects at the location
 		Iterable<Object> fireIterator = grid.getObjectsAt(pt.getX(), pt.getY());
@@ -223,7 +227,7 @@ public class FireFighter {
 		}
 	}
 
-	public void moveTowards(Direction direction) {
+	public boolean moveTowards(Direction direction) {
 		// Debug
 		System.out.println(String.format("Moving in direction: %s",
 				direction.toString()));
@@ -231,56 +235,83 @@ public class FireFighter {
 		System.out.println(String.format("Location before move: %d,%d", grid
 				.getLocation(this).getX(), grid.getLocation(this).getY()));
 
-		// This should be self explanatory
-		switch (direction) {
-		case NORTH:
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.NORTH);
-			break;
-		case NORTHEAST:
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.NORTH);
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.EAST);
-			break;
-		case EAST:
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.EAST);
-			break;
-		case SOUTHEAST:
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.EAST);
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.SOUTH);
-			break;
-		case SOUTH:
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.SOUTH);
-			break;
-		case SOUTHWEST:
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.SOUTH);
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.WEST);
-			break;
-		case WEST:
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.WEST);
-			break;
-		case NORTHWEST:
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.WEST);
-			grid.moveByVector(this, BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
-					repast.simphony.space.Direction.NORTH);
-			break;
-		default:
-			// TODO: handle this (error?)
-			System.out.println("Error in FireFighter.moveTowards(Direction)");
-			break;
+		// Check if we can even more in the desired direction
+		if (Direction.canIMoveInDirection(this.getLocation(), direction)) {
+			// This should be self explanatory
+			switch (direction) {
+			case NORTH:
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.NORTH);
+				break;
+			case NORTHEAST:
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.NORTH);
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.EAST);
+				break;
+			case EAST:
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.EAST);
+				break;
+			case SOUTHEAST:
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.EAST);
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.SOUTH);
+				break;
+			case SOUTH:
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.SOUTH);
+				break;
+			case SOUTHWEST:
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.SOUTH);
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.WEST);
+				break;
+			case WEST:
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.WEST);
+				break;
+			case NORTHWEST:
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.WEST);
+				grid.moveByVector(this,
+						BosBrandConstants.FIREFIGHTER_MOVE_SPEED,
+						repast.simphony.space.Direction.NORTH);
+				break;
+			default:
+				// TODO: handle this (error?)
+				System.out
+						.println("Error in FireFighter.moveTowards(Direction)");
+				break;
+			}
+			// Debug
+			System.out.println(String.format("Location after move: %d,%d", grid
+					.getLocation(this).getX(), grid.getLocation(this).getY()));
+			// Return that we successfully moved
+			return true;
+		} else {
+			// Debug
+			System.out.println(String.format(
+					"Could not move in direction %s; current location: %d,%d",
+					direction, grid.getLocation(this).getX(),
+					grid.getLocation(this).getY()));
+			// Could not move in the direction we wanted
+			return false;
 		}
-		// Debug
-		System.out.println(String.format("Location after move: %d,%d", grid
-				.getLocation(this).getX(), grid.getLocation(this).getY()));
+
 	}
 
 	public GridPoint getLocation() {
@@ -288,11 +319,15 @@ public class FireFighter {
 	}
 
 	public void patrol() {
-		// Do random move
+		Direction chosenDirection = null;
 		ArrayList<Direction> directions = Direction.getAllDirections();
 		Random r = new Random();
-		int choice = r.nextInt(directions.size());
-		Direction chosenDirection = directions.get(choice);
+		do {
+			// Do random move
+			int choice = r.nextInt(directions.size());
+			chosenDirection = directions.get(choice);
+		} while (!Direction.canIMoveInDirection(this.getLocation(),
+				chosenDirection));
 		// Debug
 		System.out.println(String.format("Patrolling in direction: %s",
 				chosenDirection.toString()));

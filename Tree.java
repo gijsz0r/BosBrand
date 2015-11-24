@@ -1,4 +1,4 @@
-package BosBrand
+package BosBrand;
 
 public class Tree {
 
@@ -17,6 +17,7 @@ public class Tree {
 	}
 
 	public void setCurrentHP(int hp) {
+		if (hp < 0) hp = 0;
 		treeHP = hp;
 	}
 

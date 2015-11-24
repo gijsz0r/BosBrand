@@ -1,5 +1,6 @@
 package BosBrand;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import repast.simphony.context.Context;
@@ -13,16 +14,27 @@ import repast.simphony.util.collections.IndexedIterable;
 public class Environment {
 
 	private Grid<Object> grid;
-	private Random random = new Random();
+	private Direction windDirection;
+	private Random rng = new Random();
 
 	public Environment(Grid<Object> grid) {
 		this.grid = grid;
+		this.windDirection = Direction.NORTH;
 	}
 
+	@SuppressWarnings("unchecked")
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.FIRST_PRIORITY)
 	public void step() {
 		// Check wind direction change
-		// TODO: implement wind
+		if (rng.nextDouble() <= BosBrandConstants.CHANCE_OF_WIND_TURNING) {
+			// Get all directions adjacent to our current wind direction
+			ArrayList<Direction> directions = Direction
+					.getAdjacentDirections(this.windDirection);
+			this.windDirection = directions.get(rng.nextInt(directions.size()));
+			// Debug
+			System.out.println(String.format("Wind direction changed to %s",
+					this.windDirection));
+		}
 		// Check if rain moves
 		// TODO: implement rain
 
@@ -40,15 +52,20 @@ public class Environment {
 						// Reduce tree HP
 						tree.setCurrentHP(tree.getCurrentHP()
 								- BosBrandConstants.TREE_BURNING_SPEED);
+						// Check if the Tree died
+						if (tree.getCurrentHP() == 0) {
+							// Fire
+							tree.toggleBurning();
+						}
 					} else {
-						// Tree is not burning, check if the tree spontaneously
-						// combusts
-						if (random.nextDouble() <= BosBrandConstants.TREE_CHANCE_OF_COMBUSTION) {
+						// Tree is not burning, check if the tree ignites
+						if (rng.nextDouble() <= BosBrandConstants.TREE_CHANCE_OF_COMBUSTION) {
 							// Create a new Fire object
 							Fire fire = new Fire(grid);
 							// Add Fire to the context
 							if (context.add(fire)) {
-								// If the Fire was successfully added, set tree on
+								// If the Fire was successfully added, set tree
+								// on
 								// fire and put the Fire object on the grid
 								GridPoint treeLocation = grid.getLocation(tree);
 								grid.moveTo(fire, treeLocation.getX(),
@@ -60,5 +77,9 @@ public class Environment {
 				}
 			}
 		}
+	}
+
+	public Direction getWindDirection() {
+		return this.windDirection;
 	}
 }

@@ -11,8 +11,6 @@ import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridBuilderParameters;
 import repast.simphony.space.grid.GridPoint;
 import repast.simphony.space.grid.SimpleGridAdder;
-import repast.simphony.space.grid.StrictBorders;
-import repast.simphony.space.grid.WrapAroundBorders;
 
 public class BosBrandBuilder implements ContextBuilder<Object> {
 
@@ -24,17 +22,18 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 		// Parameters are type of border handling, how to add items to the grid
 		// and the dimensions of the grid
 		GridFactory gridFactory = GridFactoryFinder.createGridFactory(null);
+		// TODO: Change to StrictBorders
 		Grid<Object> grid = gridFactory.createGrid("grid", context,
-				new GridBuilderParameters<Object>(new WrapAroundBorders(),
+				new GridBuilderParameters<Object>(BosBrandConstants.BORDER_TYPE,
 						new SimpleGridAdder<Object>(), true,
-						BosBrandConstants.FOREST_HEIGHT,
-						BosBrandConstants.FOREST_WIDTH));
+						BosBrandConstants.FOREST_WIDTH,
+						BosBrandConstants.FOREST_HEIGHT));
 						
 		// Set the tree type for this run
 		TreeType treeType = TreeType.PALM;
 		// We are making a tree on each cell
-		for (int i = 0; i < BosBrandConstants.FOREST_HEIGHT
-				* BosBrandConstants.FOREST_WIDTH; i++) {
+		for (int i = 0; i < BosBrandConstants.FOREST_WIDTH
+				* BosBrandConstants.FOREST_HEIGHT; i++) {
 			// Add the Tree objects to the context
 			context.add(new Tree(treeType));
 		}
@@ -79,8 +78,8 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 				GridPoint spawnLocation = null;
 				do {
 					// Create a random location
-					int x = r.nextInt(BosBrandConstants.FOREST_HEIGHT);
-					int y = r.nextInt(BosBrandConstants.FOREST_WIDTH);
+					int x = r.nextInt(BosBrandConstants.FOREST_WIDTH);
+					int y = r.nextInt(BosBrandConstants.FOREST_HEIGHT);
 					// Set our spawn point to these coordinates
 					spawnLocation = new GridPoint(x, y);
 					// Check if the coordinates are not the coordinates of a
