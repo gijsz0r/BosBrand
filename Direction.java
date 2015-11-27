@@ -13,8 +13,7 @@ public enum Direction {
 	NORTHWEST, NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST;
 
 	public static ArrayList<Direction> getAllDirections() {
-		return new ArrayList<Direction>(Arrays.asList(NORTHWEST, NORTH,
-				NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST));
+		return new ArrayList<Direction>(Arrays.asList(NORTHWEST, NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST));
 	}
 
 	public static ArrayList<Direction> getAllDirectionsShuffled() {
@@ -30,37 +29,44 @@ public enum Direction {
 		return getAdjacentDirections(direction, false);
 	}
 
-	public static ArrayList<Direction> getAdjacentDirections(
-			Direction direction, boolean includeSelf) {
+	public static ArrayList<Direction> getAdjacentDirections(Direction direction, boolean includeSelf) {
 		ArrayList<Direction> directions = new ArrayList<Direction>();
 		// Return the directions next to the provided direction
 		switch (direction) {
 		case NORTHWEST:
 			directions.add(WEST);
 			directions.add(NORTH);
+			break;
 		case NORTH:
 			directions.add(NORTHWEST);
 			directions.add(NORTHEAST);
+			break;
 		case NORTHEAST:
 			directions.add(NORTH);
 			directions.add(EAST);
+			break;
 		case EAST:
 			directions.add(NORTHEAST);
 			directions.add(SOUTHEAST);
+			break;
 		case SOUTHEAST:
 			directions.add(EAST);
 			directions.add(SOUTH);
+			break;
 		case SOUTH:
 			directions.add(SOUTHEAST);
 			directions.add(SOUTHWEST);
+			break;
 		case SOUTHWEST:
 			directions.add(SOUTH);
 			directions.add(WEST);
+			break;
 		case WEST:
 			directions.add(SOUTHWEST);
 			directions.add(NORTHWEST);
+			break;
 		default:
-
+			break;
 		}
 		// Include our own direction if requested
 		if (includeSelf)
@@ -68,14 +74,37 @@ public enum Direction {
 		return directions;
 	}
 
+	public static Direction getOppositeDirection(Direction direction) {
+		switch (direction) {
+		case NORTHWEST:
+			return SOUTHEAST;
+		case NORTH:
+			return SOUTH;
+		case NORTHEAST:
+			return SOUTHWEST;
+		case EAST:
+			return WEST;
+		case SOUTHEAST:
+			return NORTHWEST;
+		case SOUTH:
+			return NORTH;
+		case SOUTHWEST:
+			return NORTHEAST;
+		case WEST:
+			return EAST;
+		default:
+			System.out.println("Unknown Direction value found in Direction.getOppositeDirection");
+			return null; // TODO: handle this error
+		}
+	}
+
 	public static Direction getDirection(Point from, Point to) {
-		// We assume here that the X-axis is along the West-East line and the
-		// Y-axis is along the North-South line
+		// We assume here that the X-axis is along the West-East line and the Y-axis is along the North-South line
 		// Also, in RePast the 0,0 cell is at the bottom left of the grid
 		int dX = to.x - from.x;
 		int dY = to.y - from.y;
 		// Debug
-		System.out.println(String.format("dX: %d ; dY: %d", dX, dY));
+		// System.out.println(String.format("dX: %d ; dY: %d", dX, dY));
 
 		if (dX < 0 && dY < 0)
 			return SOUTHWEST; // lower in both axes: SouthWest
@@ -95,9 +124,7 @@ public enum Direction {
 			return WEST; // lower west-east, equal north-south: West
 		else {
 			// TODO: handle this error
-			System.out.println(String.format(
-					"Unknown relative coordinates in Direction.getDirection",
-					dX, dY));
+			System.out.println(String.format("Unknown relative coordinates in Direction.getDirection", dX, dY));
 			return null;
 		}
 	}
@@ -109,10 +136,8 @@ public enum Direction {
 		return getDirection(newFrom, toFrom);
 	}
 
-	public static Iterable<Object> getObjectsInAdjacentDirection(
-			Direction direction, Grid<Object> grid, GridPoint origin) {
-		// We assume here that the X-axis is along the West-East line and the
-		// Y-axis is along the North-South line
+	public static Iterable<Object> getObjectsInAdjacentDirection(Direction direction, Grid<Object> grid, GridPoint origin) {
+		// We assume here that the X-axis is along the West-East line and the Y-axis is along the North-South line
 		// Also, in RePast the 0,0 cell is at the bottom left of the grid
 		switch (direction) {
 		case NORTHWEST:
@@ -140,16 +165,13 @@ public enum Direction {
 			// West: 1 index lower in X and equal in Y
 			return grid.getObjectsAt(origin.getX() - 1, origin.getY());
 		default:
-			System.out
-					.println("Unknown Direction value found in Direction.getObjects");
+			System.out.println("Unknown Direction value found in Direction.getObjects");
 			return null; // TODO: handle this error
 		}
 	}
 
-	public static boolean canIMoveInDirection(GridPoint point,
-			Direction direction) {
-		// Check if we are using WrapAroundBorders, because in that case we can
-		// just return true
+	public static boolean canIMoveInDirection(GridPoint point, Direction direction) {
+		// Check if we are using WrapAroundBorders, because in that case we can just return true
 		if (BosBrandConstants.BORDER_TYPE instanceof repast.simphony.space.grid.WrapAroundBorders)
 			return true;
 		// Determine if the coordinates are on any of the borders of the grid
@@ -189,10 +211,7 @@ public enum Direction {
 			break;
 		}
 		// Debug
-		// if (!movementAllowed)
-		// System.out.println(String.format(
-		// "Impossible move: from (%d,%d) in %s direction",
-		// point.getX(), point.getY(), direction));
+		// if (!movementAllowed) System.out.println(String.format("Impossible move: from (%d,%d) in %s direction", point.getX(), point.getY(), direction));
 		return movementAllowed;
 	}
 }

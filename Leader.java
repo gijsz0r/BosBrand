@@ -23,8 +23,7 @@ public class Leader extends FireFighter {
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.FIRST_PRIORITY)
 	public void step() {
 		// Check for idle FireFighters
-		List<FireFighter> idleFireFighters = fireFighters.stream()
-				.filter(i -> !i.fightingFire).collect(Collectors.toList());
+		List<FireFighter> idleFireFighters = fireFighters.stream().filter(i -> !i.fightingFire).collect(Collectors.toList());
 		if (idleFireFighters.size() > 0) {
 			// Check if there are any Fires
 			if (fires.size() > 0) {
@@ -34,17 +33,14 @@ public class Leader extends FireFighter {
 					double closestDistance = Double.MAX_VALUE;
 					for (Fire fire : fires) {
 						// Check the distance from the FireFighter to the Fire
-						double distance = grid.getDistanceSq(
-								agent.getLocation(), fire.getLocation());
-						// If the new distance is lower than what we have
-						// already, save it
+						double distance = grid.getDistanceSq(agent.getLocation(), fire.getLocation());
+						// If the new distance is lower than what we have already, save it
 						if (distance < closestDistance) {
 							closestDistance = distance;
 							closestFire = fire;
 						}
 					}
-					// After checking all Fires, send the idle FireFighter to
-					// whichever Fire is closest
+					// After checking all Fires, send the idle FireFighter to whichever Fire is closest
 					if (closestFire != null) {
 						agent.moveTowards(closestFire.getLocation());
 					}

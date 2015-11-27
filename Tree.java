@@ -1,10 +1,14 @@
 package BosBrand;
 
+import java.awt.Point;
+
 public class Tree {
 
 	private int treeHP;
 	private boolean isBurning;
 	private boolean isRaining;
+	private int myX;
+	private int myY;
 
 	public Tree(TreeType treeType) {
 		this.treeHP = TreeType.getHP(treeType)*BosBrandConstants.TREE_HP_MODIFIER;
@@ -35,5 +39,14 @@ public class Tree {
 
 	public void toggleRaining() {
 		isRaining = !isRaining;
+	}
+	
+	public void setLocation(int x, int y) {
+		myX = x;
+		myY = y;
+	}
+	
+	public Point getLocation() {
+		return new Point(myX, myY);
 	}
 }
