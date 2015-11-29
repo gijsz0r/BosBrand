@@ -31,21 +31,24 @@ public class FireFighter {
 	}
 
 	public FireFighter() {
-
+		System.out.println("Careful! You're using the empty constructor for FireFighter! If you don't want to do this, turn back now");
 	}
 
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.RANDOM_PRIORITY)
 	public void step() {
-
-		// Check if HP is 0
+		// Check if our HP is 0
 		if (HP == 0) {
-			// Make firefighter die, by removing from context
+			// Make firefighter die, by removing it from the context
 			Context<Object> context = ContextUtils.getContext(this);
-			// If removing successful, everything is OK
 			if (!context.remove(this)) {
-				System.out.println("Error! Tried removing a firefighter and couldn't");
+				// Debug
+				System.out.println("Error! Tried removing a firefighter but couldn't");
+				// Can't continue with this method, since the firefighter should be dead and removed
+				return;
 			}
+			// Debug
 			System.out.println("A firefighter died!");
+			// Dead firefighters can't fight fire
 			return;
 		}
 
@@ -62,7 +65,6 @@ public class FireFighter {
 			// If firefighter is on a fire, lose health
 			if (Math.floor(x) == 0) {
 				HP--;
-
 			}
 			// Here we check whether we are surrounded by fire. If we are, there is a severe punishment
 			// Start by finding all fires within a distance of 1.
@@ -72,7 +74,7 @@ public class FireFighter {
 				// Remove half of the starting health of the firefighter
 				int healthToRemove = (int) Math.floor(BosBrandConstants.FIREFIGHTER_STARTING_HEALTH / 2.0);
 				// Debug
-				System.out.println("Health to remove: " + healthToRemove);
+				System.out.println(String.format("Surrounded by fire, removing %d HP", healthToRemove));
 				HP -= healthToRemove;
 			}
 			if (Math.floor(x) <= 1) {

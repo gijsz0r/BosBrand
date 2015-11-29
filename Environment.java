@@ -19,10 +19,11 @@ public class Environment {
 	private Grid<Object> grid;
 	private Direction windDirection;
 	private Random rng = new Random();
-	private int deadTreeCount = 0;
 	private double evalScore = 0;
+	private int deadTreeCount = 0;
+	private int totalTreeCount = BosBrandConstants.FOREST_HEIGHT * BosBrandConstants.FOREST_WIDTH;
 	private int initialFireFighterCount = 0;
-
+	
 	public Environment(Grid<Object> grid, int initialFireFighters) {
 		this.grid = grid;
 		this.windDirection = Direction.NORTH;
@@ -72,7 +73,7 @@ public class Environment {
 							// Remove the Fire object on this cell
 							GridPoint treeLocation = grid.getLocation(tree);
 							removeFire(treeLocation);
-							// add a counter to the deadTreeCounter
+							// Increase deadTreeCount
 							deadTreeCount++;
 							// Add a DeadTreeDummy to visually indicate that this tree died
 							DeadTreeDummy dummy = new DeadTreeDummy();
@@ -172,23 +173,21 @@ public class Environment {
 	public void evaluate() {
 		// Get the context this environment is in, we need it to access objects
 		Context<Object> context = ContextUtils.getContext(this);
-		// get firefighters
+		// Get firefighters
 		IndexedIterable<Object> fireFighters = context.getObjects(FireFighter.class);
 		List<Object> fireFighterList = IteratorUtils.toList(fireFighters.iterator());
-		// Determine current evaluation value
-		// ((number of surviving trees/total trees)+(bounty/#number firefighters))/#deadfirefighters
-		int totalTrees = BosBrandConstants.FOREST_HEIGHT * BosBrandConstants.FOREST_WIDTH;
+		// Calculate how many firefighters have died (they have been removed from the context, so we can't find them anymore)
 		int deadFireFighters = initialFireFighterCount - fireFighterList.size();
+		// Calculate the average bounty of the currently alive firefighters
 		int sumBounty = 0;
 		for (int i = 0; i < fireFighterList.size(); i++) {
 			sumBounty = sumBounty + ((FireFighter) fireFighterList.get(i)).getBounty();
 		}
-
 		// Debug
-		// System.out.println(String.format("Evaluating (totalTrees:%d) (deadTreeCount:%d) (sumBounty:%d) (deadFireFighters:%d)", totalTrees, deadTreeCount, sumBounty, deadFireFighters));
-
-		evalScore = (((totalTrees - deadTreeCount) / (totalTrees * 1.0)) * (sumBounty / initialFireFighterCount * 1.0)) * ((initialFireFighterCount - deadFireFighters) / (initialFireFighterCount * 1.0));
-
+		// System.out.println(String.format("Evaluating (totalTreeCount:%d) (deadTreeCount:%d) (sumBounty:%d) (deadFireFighters:%d)", totalTreeCount, deadTreeCount, sumBounty, deadFireFighters));
+		// Determine current evaluation value
+		// (fraction of alive trees * average bounty) / (fraction of alive firefighters)
+		evalScore = (((totalTreeCount - deadTreeCount) / (totalTreeCount * 1.0)) * (sumBounty / (initialFireFighterCount - deadFireFighters) * 1.0)) * ((initialFireFighterCount - deadFireFighters) / (initialFireFighterCount * 1.0));
 		// Debug
 		// System.out.println(String.format("Current evaluation score: %1$,.2f", evalScore));
 	}

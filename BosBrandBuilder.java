@@ -23,7 +23,6 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 		// Create a grid. Note: name should be 'grid' for some reason
 		// Parameters are type of border handling, how to add items to the grid and the dimensions of the grid
 		GridFactory gridFactory = GridFactoryFinder.createGridFactory(null);
-		// TODO: Change to StrictBorders
 		Grid<Object> grid = gridFactory.createGrid("grid", context, new GridBuilderParameters<Object>(BosBrandConstants.BORDER_TYPE, new SimpleGridAdder<Object>(), true, BosBrandConstants.FOREST_WIDTH, BosBrandConstants.FOREST_HEIGHT));
 
 		// Set the tree type for this run
@@ -51,6 +50,7 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 
 		// Add a bunch of FireFighters
 		// int fireFighterCount = BosBrandConstants.INITIAL_FIREFIGHTERS;
+		// Read the amount of firefighters we need to make from the parameters file
 		Parameters params = RunEnvironment.getInstance().getParameters();
 		int fireFighterCount = (Integer) params.getValue("firefighter_count");
 		for (int i = 0; i < fireFighterCount; i++) {

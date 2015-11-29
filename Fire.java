@@ -25,7 +25,7 @@ public class Fire {
 	}
 
 	public Fire() {
-		System.out.println("Careful! You're using the empty constructor for fire! if you don't want to do this, turn back now");
+		System.out.println("Careful! You're using the empty constructor for Fire! If you don't want to do this, turn back now");
 	}
 
 	public GridPoint getLocation() {

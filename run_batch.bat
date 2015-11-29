@@ -20,9 +20,8 @@ set MODELNAME=BosBrand
 rem The folder of the model. This might be case-sensitive. This is the base folder of your project in the file system.
 set MODELFOLDER=%WORKSPACE%
 
-rem The file containing the batch parameters. For some additional information, see Repast documentation of batch parameters at http://repast.sourceforge.net/docs/reference/SIM/Batch%20Parameters.html and/or an example batch_params.xml file at http://www.pamelatoman.net/blog/2010/08/sample-batchparamsxml/.
+rem The file containing the batch parameters.
 set BATCHPARAMS=%MODELFOLDER%\batch\batch_params.xml
-
 
 rem Execute in batch mode.
 java -cp %PLUGINS%\repast.simphony.batch_%VERSION%\bin;%PLUGINS%\repast.simphony.runtime_%VERSION%\lib\*;%PLUGINS%\repast.simphony.core_%VERSION%\lib\*;%PLUGINS%\repast.simphony.core_%VERSION%\bin;%PLUGINS%\repast.simphony.bin_and_src_%VERSION%\*;%PLUGINS%\repast.simphony.score.runtime_%VERSION%\lib\*;%PLUGINS%\repast.simphony.data_%VERSION%\lib\*;%MODELFOLDER%\bin repast.simphony.batch.BatchMain -params %BATCHPARAMS% %MODELFOLDER%\%MODELNAME%.rs
