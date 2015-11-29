@@ -18,7 +18,7 @@ public class BosBrandConstants {
 	public static final double CHANCE_OF_FIRE_SPREADING = 0.05;
 	public static final double TREE_CHANCE_OF_COMBUSTION = 0.001;
 	public static final double RAIN_MODIFIER = 0.50;
-	public static final double WIND_MODIFIER = 2.0;
+	public static final double WIND_MODIFIER = 1.0;
 	// These constants define the amount of agents at the start of the simulation
 	public static final int INITIAL_FIREFIGHTERS = 10;
 	public static final int INITIAL_FIRES = 1;

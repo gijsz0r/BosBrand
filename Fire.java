@@ -59,7 +59,7 @@ public class Fire {
 						// Check that there actually is an environment
 						if (possibleEnvironments.size() >= 1) {
 							// Adjust the wind modifier according to the amount of influence the wind has on the direction we are looking at
-							windModifier = windModifier * BosBrandConstants.WIND_MODIFIER * getWindInfluence(direction, ((Environment) possibleEnvironments.get(0)).getWindDirection());
+							windModifier = (windModifier * BosBrandConstants.WIND_MODIFIER) + getWindInfluence(direction, ((Environment) possibleEnvironments.get(0)).getWindDirection());
 						}
 						// Define a rain modifier
 						double rainModifier = neighbourTree.getIsRaining() ? BosBrandConstants.RAIN_MODIFIER : 1.0;
