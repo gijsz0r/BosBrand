@@ -21,10 +21,12 @@ public class Environment {
 	private Random rng = new Random();
 	private int deadTreeCount = 0;
 	private double evalScore = 0;
+	private int initialFireFighterCount = 0;
 
-	public Environment(Grid<Object> grid) {
+	public Environment(Grid<Object> grid, int initialFireFighters) {
 		this.grid = grid;
 		this.windDirection = Direction.NORTH;
+		this.initialFireFighterCount = initialFireFighters;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -176,12 +178,16 @@ public class Environment {
 		// Determine current evaluation value
 		// ((number of surviving trees/total trees)+(bounty/#number firefighters))/#deadfirefighters
 		int totalTrees = BosBrandConstants.FOREST_HEIGHT * BosBrandConstants.FOREST_WIDTH;
-		int deadFireFighters = BosBrandConstants.INITIAL_FIREFIGHTERS - fireFighterList.size();
+		int deadFireFighters = initialFireFighterCount - fireFighterList.size();
 		int sumBounty = 0;
 		for (int i = 0; i < fireFighterList.size(); i++) {
 			sumBounty = sumBounty + ((FireFighter) fireFighterList.get(i)).getBounty();
 		}
-		evalScore = ((totalTrees - deadTreeCount / (totalTrees * 1.0)) + (sumBounty / BosBrandConstants.INITIAL_FIREFIGHTERS * 1.0)) / (deadFireFighters + 1.0);
+
+		// Debug
+		// System.out.println(String.format("Evaluating (totalTrees:%d) (deadTreeCount:%d) (sumBounty:%d) (deadFireFighters:%d)", totalTrees, deadTreeCount, sumBounty, deadFireFighters));
+
+		evalScore = (((totalTrees - deadTreeCount) / (totalTrees * 1.0)) * (sumBounty / initialFireFighterCount * 1.0)) * ((initialFireFighterCount - deadFireFighters) / (initialFireFighterCount * 1.0));
 
 		// Debug
 		// System.out.println(String.format("Current evaluation score: %1$,.2f", evalScore));

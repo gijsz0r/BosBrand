@@ -8,8 +8,7 @@ import repast.simphony.context.space.grid.GridFactory;
 import repast.simphony.context.space.grid.GridFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
-import repast.simphony.engine.schedule.ScheduleParameters;
-import repast.simphony.engine.schedule.ScheduledMethod;
+import repast.simphony.parameter.Parameters;
 import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridBuilderParameters;
 import repast.simphony.space.grid.GridPoint;
@@ -51,7 +50,9 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 		}
 
 		// Add a bunch of FireFighters
-		int fireFighterCount = BosBrandConstants.INITIAL_FIREFIGHTERS;
+		// int fireFighterCount = BosBrandConstants.INITIAL_FIREFIGHTERS;
+		Parameters params = RunEnvironment.getInstance().getParameters();
+		int fireFighterCount = (Integer) params.getValue("firefighter_count");
 		for (int i = 0; i < fireFighterCount; i++) {
 			context.add(new FireFighter(grid));
 		}
@@ -88,13 +89,13 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 		}
 
 		// We add the environment that controls various environmental elements
-		context.add(new Environment(grid));
+		context.add(new Environment(grid, fireFighterCount));
 		// Debug
 		System.out.println("Environment created!");
 
 		// Tell the RunEnvironment we want to stop the run after X ticks
 		RunEnvironment.getInstance().endAt(BosBrandConstants.RUN_TICKS);
-		
+
 		// Return the created context
 		return context;
 	}
