@@ -20,9 +20,14 @@ public class FireFighter {
 
 	private Grid<Object> grid;
 	public boolean fightingFire;
+	private int HP;
+	private int bounty;
+	private int bountyModifier;
 
 	public FireFighter(Grid<Object> grid) {
 		this.grid = grid;
+		this.HP = BosBrandConstants.FIREFIGHTER_STARTING_HEALTH;
+		this.bountyModifier = BosBrandConstants.FIREFIGHTER_DEFAULT_BOUNTY_MODIFIER;
 	}
 
 	public FireFighter() {
@@ -31,16 +36,45 @@ public class FireFighter {
 
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.RANDOM_PRIORITY)
 	public void step() {
+
+		// Check if HP is 0
+		if (HP == 0) {
+			// Make firefighter die, by removing from context
+			Context<Object> context = ContextUtils.getContext(this);
+			// If removing successful, everything is OK
+			if (!context.remove(this)) {
+				System.out.println("Error! Tried removing a firefighter and couldn't");
+			}
+			System.out.println("A firefighter died!");
+			return;
+		}
+
 		// Get the grid location of this FireFighter
 		GridPoint pt = grid.getLocation(this);
 
 		// Check if we are next to a fire
 		GridPoint firePoint = checkForFire(pt);
 		if (firePoint != null) {
-			// Check if the fire is next to us
+			// Get the distance to the closest fire
 			double x = grid.getDistance(pt, firePoint);
 			// Debug
-			//System.out.println(String.format("I can see a fire %1$,.2f", x));
+			// System.out.println(String.format("I can see a fire %1$,.2f", x));
+			// If firefighter is on a fire, lose health
+			if (Math.floor(x) == 0) {
+				HP--;
+
+			}
+			// Here we check whether we are surrounded by fire. If we are, there is a severe punishment
+			// Start by finding all fires within a distance of 1.
+			List<GridCell<Fire>> fires = getFiresInDistance(pt, 1);
+			// Remove the possible fire underneath the firefighter from the list, then check if the size of the list is 8 (implying that there is fire everywhere around the firefighter)
+			if (fires.stream().filter(i -> Math.floor(grid.getDistance(pt, i.getPoint())) == 1).count() == 8) {
+				// Remove half of the starting health of the firefighter
+				int healthToRemove = (int) Math.floor(BosBrandConstants.FIREFIGHTER_STARTING_HEALTH / 2.0);
+				// Debug
+				System.out.println("Health to remove: " + healthToRemove);
+				HP -= healthToRemove;
+			}
 			if (Math.floor(x) <= 1) {
 				// We are now adjacent to a Fire
 				extinguishFire(firePoint);
@@ -64,12 +98,12 @@ public class FireFighter {
 			if (fightingAllies.size() > 0) {
 				GridCell<FireFighter> ally = null;
 				// Debug
-				//System.out.println(String.format("Found %d nearby allies fighting fire!", fightingAllies.size()));
+				// System.out.println(String.format("Found %d nearby allies fighting fire!", fightingAllies.size()));
 				// Sense closest
 				OptionalInt minDistance = fightingAllies.stream().mapToInt(i -> (int) grid.getDistance(pt, i.getPoint())).min();
 				if (minDistance.isPresent()) {
 					// Debug
-					//System.out.println(String.format("Nearest fighting ally distance: %d", minDistance.getAsInt()));
+					// System.out.println(String.format("Nearest fighting ally distance: %d", minDistance.getAsInt()));
 					// Get the point of the closest fighting ally
 					Optional<GridCell<FireFighter>> close = fightingAllies.stream().filter(i -> (int) grid.getDistance(pt, i.getPoint()) == minDistance.getAsInt()).findFirst();
 					if (close.isPresent()) {
@@ -77,7 +111,7 @@ public class FireFighter {
 					}
 				} else {
 					// Debug
-					//System.out.println("No distance to nearest fighting ally found.");
+					// System.out.println("No distance to nearest fighting ally found.");
 				}
 
 				if (ally != null) {
@@ -112,22 +146,27 @@ public class FireFighter {
 		}
 	}
 
-	public GridPoint checkForFire(GridPoint pt) {
+	public List<GridCell<Fire>> getFiresInDistance(GridPoint pt, int distance) {
 		// Make a list with all cells containing fire
-		GridCellNgh<Fire> fireNeighbourhoodCreator = new GridCellNgh<Fire>(grid, pt, Fire.class, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
+		GridCellNgh<Fire> fireNeighbourhoodCreator = new GridCellNgh<Fire>(grid, pt, Fire.class, distance, distance);
 		List<GridCell<Fire>> gridCells = fireNeighbourhoodCreator.getNeighborhood(true);
-		// Filter on GridCells containing at least one item
-		List<GridCell<Fire>> fireGridCells = gridCells.stream().filter(i -> i.items().iterator().hasNext()).collect(Collectors.toList());
+		// Return GridCells containing at least one item
+		return gridCells.stream().filter(i -> i.items().iterator().hasNext()).collect(Collectors.toList());
+	}
+
+	public GridPoint checkForFire(GridPoint pt) {
+		// Get all the Cells that contain Fire within the distance we can see
+		List<GridCell<Fire>> fireGridCells = getFiresInDistance(pt, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
 		// Check if any fires were detected
 		if (fireGridCells.size() > 0) {
 			GridCell<Fire> fire = null;
 			// Debug
-			//System.out.println(String.format("Found %d nearby fires!", fireGridCells.size()));
+			// System.out.println(String.format("Found %d nearby fires!", fireGridCells.size()));
 			// Check which fire is closest
 			OptionalInt minDistance = fireGridCells.stream().mapToInt(i -> (int) grid.getDistance(pt, i.getPoint())).min();
 			if (minDistance.isPresent()) {
 				// Debug
-				//System.out.println(String.format("Nearest fire distance: %d", minDistance.getAsInt()));
+				// System.out.println(String.format("Nearest fire distance: %d", minDistance.getAsInt()));
 				// Get the point of the closest fire
 				Optional<GridCell<Fire>> close = fireGridCells.stream().filter(i -> (int) grid.getDistance(pt, i.getPoint()) == minDistance.getAsInt()).findFirst();
 				if (close.isPresent()) {
@@ -135,7 +174,7 @@ public class FireFighter {
 				}
 			} else {
 				// Debug
-				//System.out.println("No distance found to closest fire.");
+				// System.out.println("No distance found to closest fire.");
 			}
 
 			if (fire != null) {
@@ -155,12 +194,12 @@ public class FireFighter {
 			// Check if a Fire object is found
 			if (obj instanceof Fire) {
 				// Debug
-				//System.out.println(String.format("Trying to remove Fire at: %d,%d", pt.getX(), pt.getY()));
+				// System.out.println(String.format("Trying to remove Fire at: %d,%d", pt.getX(), pt.getY()));
 				// Remove the Fire object from the context
 				Context<Object> context = ContextUtils.getContext(obj);
 				if (context.remove(obj)) {
 					// Debug
-					//System.out.println("Fire successfully removed from context");
+					// System.out.println("Fire successfully removed from context");
 					// Find the tree on this cell
 					Iterable<Object> treeIterator = grid.getObjectsAt(pt.getX(), pt.getY());
 					for (Object obj2 : treeIterator) {
@@ -169,6 +208,8 @@ public class FireFighter {
 							((Tree) obj2).toggleBurning();
 						}
 					}
+					// Award the firefighter a bounty
+					bounty += bountyModifier * BosBrandConstants.FIREFIGHTER_DEFAULT_EXTINGUISH_BOUNTY;
 					break;
 				}
 			}
@@ -189,9 +230,9 @@ public class FireFighter {
 
 	public boolean moveTowards(Direction direction) {
 		// Debug
-		//System.out.println(String.format("Moving in direction: %s", direction.toString()));
+		// System.out.println(String.format("Moving in direction: %s", direction.toString()));
 		// Debug
-		//System.out.println(String.format("Location before move: %d,%d", grid.getLocation(this).getX(), grid.getLocation(this).getY()));
+		// System.out.println(String.format("Location before move: %d,%d", grid.getLocation(this).getX(), grid.getLocation(this).getY()));
 
 		// Check if we can even more in the desired direction
 		if (Direction.canIMoveInDirection(this.getLocation(), direction)) {
@@ -231,12 +272,12 @@ public class FireFighter {
 				break;
 			}
 			// Debug
-			//System.out.println(String.format("Location after move: %d,%d", grid.getLocation(this).getX(), grid.getLocation(this).getY()));
+			// System.out.println(String.format("Location after move: %d,%d", grid.getLocation(this).getX(), grid.getLocation(this).getY()));
 			// Return that we successfully moved
 			return true;
 		} else {
 			// Debug
-			//System.out.println(String.format("Could not move in direction %s; current location: %d,%d", direction, grid.getLocation(this).getX(), grid.getLocation(this).getY()));
+			// System.out.println(String.format("Could not move in direction %s; current location: %d,%d", direction, grid.getLocation(this).getX(), grid.getLocation(this).getY()));
 			// Could not move in the direction we wanted
 			return false;
 		}
@@ -247,6 +288,22 @@ public class FireFighter {
 		return grid.getLocation(this);
 	}
 
+	public void setBounty(int bounty) {
+		this.bounty = bounty;
+	}
+
+	public int getBounty() {
+		return bounty;
+	}
+	
+	public void setBountyModifier(int bountyModifier) {
+		this.bountyModifier = bountyModifier;
+	}
+	
+	public int getBountyModifier() {
+		return bountyModifier;
+	}
+	
 	public void patrol() {
 		Direction chosenDirection = null;
 		ArrayList<Direction> directions = Direction.getAllDirections();
@@ -257,7 +314,7 @@ public class FireFighter {
 			chosenDirection = directions.get(choice);
 		} while (!Direction.canIMoveInDirection(this.getLocation(), chosenDirection));
 		// Debug
-		//System.out.println(String.format("Patrolling in direction: %s", chosenDirection.toString()));
+		// System.out.println(String.format("Patrolling in direction: %s", chosenDirection.toString()));
 		// Execute move
 		moveTowards(chosenDirection);
 	}

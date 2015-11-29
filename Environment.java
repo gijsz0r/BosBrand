@@ -19,6 +19,8 @@ public class Environment {
 	private Grid<Object> grid;
 	private Direction windDirection;
 	private Random rng = new Random();
+	private int deadTreeCount = 0;
+	private double evalScore = 0;
 
 	public Environment(Grid<Object> grid) {
 		this.grid = grid;
@@ -39,7 +41,7 @@ public class Environment {
 			// System.out.println(String.format("Found %d adjacent directions", directions.size()));
 			this.windDirection = directions.get(rng.nextInt(directions.size()));
 			// Debug
-			System.out.println(String.format("Wind direction changed to %s", this.windDirection));
+			// System.out.println(String.format("Wind direction changed to %s", this.windDirection));
 
 			// TODO: Research wind direction changed event in Context
 		}
@@ -48,7 +50,7 @@ public class Environment {
 		IndexedIterable<Object> rains = context.getObjects(Rain.class);
 		List<Object> rainList = IteratorUtils.toList(rains.iterator());
 		// Call step method on each Rain object
-		rainList.stream().filter(i -> i instanceof Rain).forEach(j -> ((Rain)j).step(context));
+		rainList.stream().filter(i -> i instanceof Rain).forEach(j -> ((Rain) j).step(context));
 
 		// Loop over all trees
 		IndexedIterable<Object> trees = context.getObjects(Tree.class);
@@ -68,6 +70,8 @@ public class Environment {
 							// Remove the Fire object on this cell
 							GridPoint treeLocation = grid.getLocation(tree);
 							removeFire(treeLocation);
+							// add a counter to the deadTreeCounter
+							deadTreeCount++;
 							// Add a DeadTreeDummy to visually indicate that this tree died
 							DeadTreeDummy dummy = new DeadTreeDummy();
 							if (context.add(dummy)) {
@@ -161,4 +165,29 @@ public class Environment {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
+	public void evaluate() {
+		// Get the context this environment is in, we need it to access objects
+		Context<Object> context = ContextUtils.getContext(this);
+		// get firefighters
+		IndexedIterable<Object> fireFighters = context.getObjects(FireFighter.class);
+		List<Object> fireFighterList = IteratorUtils.toList(fireFighters.iterator());
+		// Determine current evaluation value
+		// ((number of surviving trees/total trees)+(bounty/#number firefighters))/#deadfirefighters
+		int totalTrees = BosBrandConstants.FOREST_HEIGHT * BosBrandConstants.FOREST_WIDTH;
+		int deadFireFighters = BosBrandConstants.INITIAL_FIREFIGHTERS - fireFighterList.size();
+		int sumBounty = 0;
+		for (int i = 0; i < fireFighterList.size(); i++) {
+			sumBounty = sumBounty + ((FireFighter) fireFighterList.get(i)).getBounty();
+		}
+		evalScore = ((totalTrees - deadTreeCount / (totalTrees * 1.0)) + (sumBounty / BosBrandConstants.INITIAL_FIREFIGHTERS * 1.0)) / (deadFireFighters + 1.0);
+
+		// Debug
+		// System.out.println(String.format("Current evaluation score: %1$,.2f", evalScore));
+	}
+
+	public double getEvaluationScore() {
+		return evalScore;
+	}
 }

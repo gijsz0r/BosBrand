@@ -7,6 +7,9 @@ import repast.simphony.context.Context;
 import repast.simphony.context.space.grid.GridFactory;
 import repast.simphony.context.space.grid.GridFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.schedule.ScheduleParameters;
+import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.grid.Grid;
 import repast.simphony.space.grid.GridBuilderParameters;
 import repast.simphony.space.grid.GridPoint;
@@ -42,7 +45,7 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 			// Place the Tree in the correct location on the grid
 			grid.moveTo(tree, x, y);
 			// Tell the tree to save it's location
-			((Tree)tree).setLocation(x, y);
+			((Tree) tree).setLocation(x, y);
 			// Increase the index
 			placer++;
 		}
@@ -89,7 +92,11 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 		// Debug
 		System.out.println("Environment created!");
 
+		// Tell the RunEnvironment we want to stop the run after X ticks
+		RunEnvironment.getInstance().endAt(BosBrandConstants.RUN_TICKS);
+		
 		// Return the created context
 		return context;
 	}
+
 }
