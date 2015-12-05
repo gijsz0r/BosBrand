@@ -23,11 +23,13 @@ public class Environment {
 	private int deadTreeCount = 0;
 	private int totalTreeCount = BosBrandConstants.FOREST_HEIGHT * BosBrandConstants.FOREST_WIDTH;
 	private int initialFireFighterCount = 0;
-	
-	public Environment(Grid<Object> grid, int initialFireFighters) {
+	private int rainIntensity = 0;
+
+	public Environment(Grid<Object> grid, int initialFireFighters, int rainIntensity) {
 		this.grid = grid;
 		this.windDirection = Direction.NORTH;
 		this.initialFireFighterCount = initialFireFighters;
+		this.rainIntensity = rainIntensity;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -101,11 +103,11 @@ public class Environment {
 
 		// Spawn rain objects, only if there are not enough rain objects
 		rains = context.getObjects(Rain.class);
-		if (rains.size() < BosBrandConstants.RAIN_INTENSITY) {
+		if (rains.size() < rainIntensity) {
 			// Keep track of locations we spawned rain at
 			ArrayList<GridPoint> spawnLocations = new ArrayList<GridPoint>();
 			// Not enough rain, spawn new ones equal to the difference
-			for (int i = 0; i < BosBrandConstants.RAIN_INTENSITY - rains.size(); i++) {
+			for (int i = 0; i < (rainIntensity - rains.size()); i++) {
 				// Find a good location to spawn our rain
 				boolean foundNewLocation = false;
 				GridPoint spawnLocation = null;

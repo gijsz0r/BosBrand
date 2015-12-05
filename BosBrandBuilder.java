@@ -25,12 +25,17 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 		GridFactory gridFactory = GridFactoryFinder.createGridFactory(null);
 		Grid<Object> grid = gridFactory.createGrid("grid", context, new GridBuilderParameters<Object>(BosBrandConstants.BORDER_TYPE, new SimpleGridAdder<Object>(), true, BosBrandConstants.FOREST_WIDTH, BosBrandConstants.FOREST_HEIGHT));
 
+		// Read the simulation's parameters, as defined in the parameters file
+		Parameters params = RunEnvironment.getInstance().getParameters();
+
 		// Set the tree type for this run
 		TreeType treeType = TreeType.PALM;
+		// Get the tree HP modifier
+		int treeHPModifier = (Integer) params.getValue("tree_hp_modifier");
 		// We are making a tree on each cell
 		for (int i = 0; i < BosBrandConstants.FOREST_WIDTH * BosBrandConstants.FOREST_HEIGHT; i++) {
 			// Add the Tree objects to the context
-			context.add(new Tree(treeType));
+			context.add(new Tree(treeType, treeHPModifier));
 		}
 		// Place each created Tree on a location in the grid
 		int placer = 0;
@@ -48,17 +53,16 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 			placer++;
 		}
 
-		// Add a bunch of FireFighters
-		// int fireFighterCount = BosBrandConstants.INITIAL_FIREFIGHTERS;
-		// Read the amount of firefighters we need to make from the parameters file
-		Parameters params = RunEnvironment.getInstance().getParameters();
+		// Get the amount of firefighters
 		int fireFighterCount = (Integer) params.getValue("firefighter_count");
+		// Add a bunch of FireFighters
 		for (int i = 0; i < fireFighterCount; i++) {
-			context.add(new FireFighter(grid));
+			context.add(new FireFighter(grid, i));
 		}
 
+		// Get the amount of initial fires
+		int fireCount = (Integer) params.getValue("initial_fire_count");
 		// Add a bunch of Fires
-		int fireCount = BosBrandConstants.INITIAL_FIRES;
 		for (int i = 0; i < fireCount; i++) {
 			context.add(new Fire(grid));
 		}
@@ -88,8 +92,10 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 			}
 		}
 
+		// Get the rain intensity for this run
+		int rainIntensity = (Integer) params.getValue("rain_intensity");
 		// We add the environment that controls various environmental elements
-		context.add(new Environment(grid, fireFighterCount));
+		context.add(new Environment(grid, fireFighterCount, rainIntensity));
 		// Debug
 		System.out.println("Environment created!");
 

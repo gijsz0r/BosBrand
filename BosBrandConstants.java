@@ -9,6 +9,7 @@ public class BosBrandConstants {
 	public static final int FOREST_WIDTH = 25;
 	public static final int FOREST_HEIGHT = 25;
 	// This constant defines the amount of HP tree will have
+	@Deprecated
 	public static final int TREE_HP_MODIFIER = 10;
 	// This constant defines the amount of steps a Rain object can exist
 	public static final int RAIN_LIFETIME = 10;
@@ -20,16 +21,19 @@ public class BosBrandConstants {
 	public static final double RAIN_MODIFIER = 0.50;
 	public static final double WIND_MODIFIER = 1.0;
 	// These constants define the amount of agents at the start of the simulation
+	@Deprecated
 	public static final int INITIAL_FIREFIGHTERS = 10;
+	@Deprecated
 	public static final int INITIAL_FIRES = 1;
 	// This constant defines the intensity of rain on the map
+	@Deprecated
 	public static final int RAIN_INTENSITY = 10;
 	// These constants define the speed at which agents move, or trees burn
 	public static final int FIREFIGHTER_MOVE_SPEED = 1;
 	public static final int RAIN_MOVE_SPEED = 1;
 	public static final int TREE_BURNING_SPEED = 1;
 	// This constant defines the distance FireFighters can sense
-	public static final int FIREFIGHTER_LOOKING_DISTANCE = 8;
+	public static final int FIREFIGHTER_LOOKING_DISTANCE = 5;
 	// This constant defines the starting health of the fire fighters
 	public static final int FIREFIGHTER_STARTING_HEALTH = 4;
 	// This constant defines the type of borders used in the simulation

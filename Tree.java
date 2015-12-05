@@ -10,8 +10,8 @@ public class Tree {
 	private int myX;
 	private int myY;
 
-	public Tree(TreeType treeType) {
-		this.treeHP = TreeType.getHP(treeType)*BosBrandConstants.TREE_HP_MODIFIER;
+	public Tree(TreeType treeType, int treeHPModifier) {
+		this.treeHP = TreeType.getHP(treeType)*treeHPModifier;
 		this.isBurning = false;
 		this.isRaining = false;
 	}
