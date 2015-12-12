@@ -96,7 +96,20 @@ public class BlackBoard {
 		return blackboard[c + FOREST_FIRE_OFFSET] == 1;
 	}
 
+	public static ArrayList<GridPoint> getFireFighterLocations(int tickCount, int startingTeamMates, int ID) {
+		ArrayList<GridPoint> fireFighterList = new ArrayList<GridPoint>();
+		for (int i = CHANNEL_FIRE_FIGHTER; i < CHANNEL_FIRE_FIGHTER + (FIRE_FIGHTER_CHANNEL_COUNT * startingTeamMates); i += FIRE_FIGHTER_CHANNEL_COUNT) {
+			int fireFighterID = blackboard[i + FIRE_FIGHTER_CHANNEL_OFFSET_ID];
+			if (ID != fireFighterID && isAlive(fireFighterID, tickCount)) {
+				fireFighterList.add(toGridPoint(blackboard[i + FIRE_FIGHTER_CHANNEL_OFFSET_LOCATION]));
+			}
+		}
+
+		return fireFighterList;
+	}
+
 	public static ArrayList<GridPoint> getReportedFires() {
+		
 		// Create a list to write to
 		ArrayList<GridPoint> fireList = new ArrayList<GridPoint>();
 		// Loop through the channels, starting at the point where the forests starts and continuing for as many items as there are in the forest

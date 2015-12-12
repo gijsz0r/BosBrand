@@ -16,7 +16,7 @@ public class BosBrandConstants {
 	// These constants define environmental probabilities
 	public static final double CHANCE_OF_RAIN = 0.2;
 	public static final double CHANCE_OF_WIND_TURNING = 0.1;
-	public static final double CHANCE_OF_FIRE_SPREADING = 0.05;
+	public static final double CHANCE_OF_FIRE_SPREADING = 0.01;
 	public static final double TREE_CHANCE_OF_COMBUSTION = 0.001;
 	public static final double RAIN_MODIFIER = 0.50;
 	public static final double WIND_MODIFIER = 1.0;

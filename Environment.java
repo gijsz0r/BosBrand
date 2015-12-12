@@ -189,7 +189,7 @@ public class Environment {
 		// System.out.println(String.format("Evaluating (totalTreeCount:%d) (deadTreeCount:%d) (sumBounty:%d) (deadFireFighters:%d)", totalTreeCount, deadTreeCount, sumBounty, deadFireFighters));
 		// Determine current evaluation value
 		// (fraction of alive trees * average bounty) / (fraction of alive firefighters)
-		evalScore = (((totalTreeCount - deadTreeCount) / (totalTreeCount * 1.0)) * (sumBounty / (initialFireFighterCount - deadFireFighters) * 1.0)) * ((initialFireFighterCount - deadFireFighters) / (initialFireFighterCount * 1.0));
+		evalScore = (((totalTreeCount - deadTreeCount) / (totalTreeCount * 1.0)) * (sumBounty / (Math.max(1, (initialFireFighterCount - deadFireFighters))) * 1.0)) * ((initialFireFighterCount - deadFireFighters) / (initialFireFighterCount * 1.0));
 		// Debug
 		// System.out.println(String.format("Current evaluation score: %1$,.2f", evalScore));
 	}

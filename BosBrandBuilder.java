@@ -57,7 +57,7 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 		int fireFighterCount = (Integer) params.getValue("firefighter_count");
 		// Add a bunch of FireFighters
 		for (int i = 0; i < fireFighterCount; i++) {
-			context.add(new FireFighter(grid, i));
+			context.add(new FireFighter(grid, i, fireFighterCount));
 		}
 
 		// Get the amount of initial fires

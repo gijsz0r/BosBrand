@@ -1,6 +1,5 @@
 package BosBrand;
 
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,12 +26,14 @@ public class FireFighter {
 	private int HP;
 	private int bounty;
 	private int bountyModifier;
+	private int startingTeamMates;
 
-	public FireFighter(Grid<Object> grid, int id) {
+	public FireFighter(Grid<Object> grid, int id, int startingTeamMates) {
 		this.grid = grid;
 		this.id = id;
 		this.HP = BosBrandConstants.FIREFIGHTER_STARTING_HEALTH;
 		this.bountyModifier = BosBrandConstants.FIREFIGHTER_DEFAULT_BOUNTY_MODIFIER;
+		this.startingTeamMates = startingTeamMates;
 	}
 
 	public FireFighter() {
@@ -61,8 +62,9 @@ public class FireFighter {
 		// Get the grid location of this FireFighter
 		GridPoint pt = grid.getLocation(this);
 
+		int tickCount = (int) RunEnvironment.getInstance().getCurrentSchedule().getTickCount();
 		// Signal that we are alive to the blackboard
-		BlackBoard.signalAlive(this.id, (int) RunEnvironment.getInstance().getCurrentSchedule().getTickCount(), pt);
+		BlackBoard.signalAlive(this.id, tickCount, pt);
 
 		// Check if we are next to a fire
 		GridPoint firePoint = checkForFire(pt);
@@ -94,67 +96,69 @@ public class FireFighter {
 			}
 		}
 
-		// Make a list with all cells containing allies
-		GridCellNgh<FireFighter> allyNeighbourHoodCreator = new GridCellNgh<FireFighter>(grid, pt, FireFighter.class, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
-		List<GridCell<FireFighter>> gridCells = allyNeighbourHoodCreator.getNeighborhood(true);
-		// Debug
-		// System.out.println(String.format("Amount of cells found: %d", gridCells.size()));
-		// Filter on GridCells containing at least one item
-		List<GridCell<FireFighter>> allyGridCells = gridCells.stream().filter(i -> i.items().iterator().hasNext()).collect(Collectors.toList());
-		// Check if any cells were found at all
-		if (allyGridCells.size() > 0) {
-			// Check if any ally is currently fighting fire
-			List<GridCell<FireFighter>> fightingAllies = allyGridCells.stream().filter(i -> i.items().iterator().hasNext()).filter(j -> j.items().iterator().next().fightingFire).collect(Collectors.toList());
-			// If any
-			if (fightingAllies.size() > 0) {
-				GridCell<FireFighter> ally = null;
-				// Debug
-				// System.out.println(String.format("Found %d nearby allies fighting fire!", fightingAllies.size()));
-				// Sense closest
-				OptionalInt minDistance = fightingAllies.stream().mapToInt(i -> (int) grid.getDistance(pt, i.getPoint())).min();
-				if (minDistance.isPresent()) {
-					// Debug
-					// System.out.println(String.format("Nearest fighting ally distance: %d", minDistance.getAsInt()));
-					// Get the point of the closest fighting ally
-					Optional<GridCell<FireFighter>> close = fightingAllies.stream().filter(i -> (int) grid.getDistance(pt, i.getPoint()) == minDistance.getAsInt()).findFirst();
-					if (close.isPresent()) {
-						ally = close.get();
-					}
-				} else {
-					// Debug
-					// System.out.println("No distance to nearest fighting ally found.");
-				}
+		moveTowards(patrolSmart(pt, tickCount));
 
-				if (ally != null) {
-					// Move towards the closest fighting ally
-					moveTowards(ally.getPoint());
-					return;
-				} else {
-					patrol();
-					return;
-				}
-			} else {
-				// This means there are allies close, but none are fighting fire
-				if (firePoint != null) {
-					// Move towards the closest fire
-					moveTowards(firePoint);
-					return;
-				} else {
-					patrol();
-					return;
-				}
-			}
-		} else {
-			// If we have a fire nearby, move there
-			if (firePoint != null) {
-				// Move towards the closest fire
-				moveTowards(firePoint);
-				return;
-			} else {
-				patrol();
-				return;
-			}
-		}
+		// // Make a list with all cells containing allies
+		// GridCellNgh<FireFighter> allyNeighbourHoodCreator = new GridCellNgh<FireFighter>(grid, pt, FireFighter.class, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
+		// List<GridCell<FireFighter>> gridCells = allyNeighbourHoodCreator.getNeighborhood(true);
+		// // Debug
+		// // System.out.println(String.format("Amount of cells found: %d", gridCells.size()));
+		// // Filter on GridCells containing at least one item
+		// List<GridCell<FireFighter>> allyGridCells = gridCells.stream().filter(i -> i.items().iterator().hasNext()).collect(Collectors.toList());
+		// // Check if any cells were found at all
+		// if (allyGridCells.size() > 0) {
+		// // Check if any ally is currently fighting fire
+		// List<GridCell<FireFighter>> fightingAllies = allyGridCells.stream().filter(i -> i.items().iterator().hasNext()).filter(j -> j.items().iterator().next().fightingFire).collect(Collectors.toList());
+		// // If any
+		// if (fightingAllies.size() > 0) {
+		// GridCell<FireFighter> ally = null;
+		// // Debug
+		// // System.out.println(String.format("Found %d nearby allies fighting fire!", fightingAllies.size()));
+		// // Sense closest
+		// OptionalInt minDistance = fightingAllies.stream().mapToInt(i -> (int) grid.getDistance(pt, i.getPoint())).min();
+		// if (minDistance.isPresent()) {
+		// // Debug
+		// // System.out.println(String.format("Nearest fighting ally distance: %d", minDistance.getAsInt()));
+		// // Get the point of the closest fighting ally
+		// Optional<GridCell<FireFighter>> close = fightingAllies.stream().filter(i -> (int) grid.getDistance(pt, i.getPoint()) == minDistance.getAsInt()).findFirst();
+		// if (close.isPresent()) {
+		// ally = close.get();
+		// }
+		// } else {
+		// // Debug
+		// // System.out.println("No distance to nearest fighting ally found.");
+		// }
+		//
+		// if (ally != null) {
+		// // Move towards the closest fighting ally
+		// moveTowards(ally.getPoint());
+		// return;
+		// } else {
+		// patrol();
+		// return;
+		// }
+		// } else {
+		// // This means there are allies close, but none are fighting fire
+		// if (firePoint != null) {
+		// // Move towards the closest fire
+		// moveTowards(firePoint);
+		// return;
+		// } else {
+		// patrol();
+		// return;
+		// }
+		// }
+		// } else {
+		// // If we have a fire nearby, move there
+		// if (firePoint != null) {
+		// // Move towards the closest fire
+		// moveTowards(firePoint);
+		// return;
+		// } else {
+		// patrol();
+		// return;
+		// }
+		// }
 	}
 
 	public List<GridCell<Fire>> getFiresInDistance(GridPoint pt, int distance) {
@@ -170,11 +174,14 @@ public class FireFighter {
 		List<GridCell<Fire>> fireGridCells = getFiresInDistance(pt, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
 		// Check if any fires were detected
 		if (fireGridCells.size() > 0) {
+			// System.out.println("FireFighter " + id + " is reporting fires");
 			// Report each fire location to the blackboard
-			fireGridCells.stream().forEach(i -> BlackBoard.reportLocationStatus(i.getPoint(), true));
-			/*
-			 * Another way of writing this: for(int i = 0;i<fireGridCells.size();i++){ BlackBoard.reportLocationStatus(fireGridCells.get(i).getPoint(), true); }
-			 */
+			// fireGridCells.stream().forEach(i -> BlackBoard.reportLocationStatus(i.getPoint(), true));
+
+			for (int i = 0; i < fireGridCells.size(); i++) {
+				BlackBoard.reportLocationStatus(fireGridCells.get(i).getPoint(), true);
+			}
+
 			GridCell<Fire> fire = null;
 			// Debug
 			// System.out.println(String.format("Found %d nearby fires!", fireGridCells.size()));
@@ -341,7 +348,7 @@ public class FireFighter {
 		moveTowards(chosenDirection);
 	}
 
-	private Direction patrolSmart() {
+	private Direction patrolSmart(GridPoint location, int tickCount) {
 		// create heatmap
 		int initialValue = 0;
 		int[][] fireFighterLayer = new int[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
@@ -356,102 +363,149 @@ public class FireFighter {
 		}
 		boolean[][] hasBeenFilled = new boolean[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
 		// fill heatmap with firefighters
-		// TODO make this firefighter call work
-		ArrayList<FireFighter> fireFighterList = new ArrayList<FireFighter>();
+		ArrayList<GridPoint> fireFighterList = BlackBoard.getFireFighterLocations(tickCount, startingTeamMates, this.id);
 
 		// floodfill from firefighters, with decreasing strength (we do not want to go to a square if the square has a firefighter on it
-		for (FireFighter f : fireFighterList) {
-			int strength = 50;
-			int decrease = 25;
-			floodFill(strength, decrease, fireFighterLayer, hasBeenFilled, new Point(grid.getLocation(f).getX(), grid.getLocation(f).getY()));
+		for (GridPoint f : fireFighterList) {
+			int strength = 100;
+			int decrease = 1;
+			floodFill(strength, decrease, fireFighterLayer, hasBeenFilled, f);
 			hasBeenFilled = new boolean[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
 		}
 
-		// TODO: add other layers? (fires, dead forest, etc?)
 		ArrayList<GridPoint> fireList = BlackBoard.getReportedFires();
-		
+		// Debug
+		// System.out.println("Hey hey hey hey hey hey! The size of the fire list is " + fireList.size());
+
 		// go through the list of known fires, add heat to the heatmap for every one of them
 		for (GridPoint f : fireList) {
-			int strength = 50;
-			int decrease = 25;
-			floodFill(strength, decrease, fireLayer, hasBeenFilled, new Point(f.getX(), f.getY()));
+			int strength = 100;
+			int decrease = 1;
+			floodFill(strength, decrease, fireLayer, hasBeenFilled, f);
 			hasBeenFilled = new boolean[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
 		}
 
 		int distanceStrength = 100;
-		int distanceDecrease = 10;
-		floodFill(distanceStrength, distanceDecrease, distanceLayer, hasBeenFilled, new Point(grid.getLocation(this).getX(), grid.getLocation(this).getY()));
+		int distanceDecrease = 1;
+		floodFill(distanceStrength, distanceDecrease, distanceLayer, hasBeenFilled, location);
 		hasBeenFilled = new boolean[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
 
 		// create the final heatmap
 		float[][] heatMap = new float[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
 
 		// find the maximum values of the layers, to normalize
-		float fireMax = Arrays.stream(fireLayer).flatMapToInt(Arrays::stream).max().getAsInt();
-		float fireFighterMax = Arrays.stream(fireFighterLayer).flatMapToInt(Arrays::stream).max().getAsInt();
-		float distanceMax = Arrays.stream(distanceLayer).flatMapToInt(Arrays::stream).max().getAsInt();
+		float fireMax = Math.max(1, Arrays.stream(fireLayer).flatMapToInt(Arrays::stream).max().getAsInt());
+		float fireFighterMax = Math.max(1, Arrays.stream(fireFighterLayer).flatMapToInt(Arrays::stream).max().getAsInt());
+		float distanceMax = Math.max(1, Arrays.stream(distanceLayer).flatMapToInt(Arrays::stream).max().getAsInt());
 
 		// decide the coefficients of the layers to decide the importance of them
-		float fireLayerCoefficient = 0.33f;
-		float fireFighterLayerCoefficient = 0.33f;
-		float distanceCoefficient = 0.33f;
+		float fireLayerCoefficient = 1.0f;
+		float fireFighterLayerCoefficient = 0f;
+		float distanceCoefficient = 0.0f;
 
 		// fill every element of the heatmap with the separate layers
 		for (int i = 0; i < heatMap.length; i++) {
 			for (int j = 0; j < heatMap[0].length; j++) {
-				heatMap[i][j] = (fireLayerCoefficient * fireLayer[i][j] / fireMax) + (-fireFighterLayerCoefficient * fireFighterLayer[i][j] / fireFighterMax) + (distanceCoefficient * distanceLayer[i][j] / distanceMax);
+				heatMap[i][j] = (fireLayerCoefficient * (fireLayer[i][j] / fireMax)) + (-fireFighterLayerCoefficient * (fireFighterLayer[i][j] / fireFighterMax)) + (distanceCoefficient * distanceLayer[i][j] / distanceMax);
 			}
 		}
+
+		// Debug
+		// System.out.println("Heatmap!");
+		// toStringArray(heatMap);
+		 System.out.println("Fire Layer!");
+		 toStringArray(fireLayer);
+		// System.out.println("Firefighter Layer!");
+		// toStringArray(fireFighterLayer);
+		// System.out.println("Distance Layer!");
+		// toStringArray(distanceLayer);
 
 		// decide how to find where to go (best tile around firefighter, tile that leads to best tile on map)
 		Random random = new Random();
 		double epsilon = 0.000001;
-		double bestHeat = -Double.MAX_VALUE;
-		Point bestPoint = null;
-		GridPoint location = grid.getLocation(this);
-		for (int i = location.getX() - 1; i < location.getX() + 2; i++) {
-			for (int j = location.getY() - 1; j < location.getY() + 2; j++) {
-				if (i == location.getX() && j == location.getY()) {
+		double bestHeat = Double.NEGATIVE_INFINITY;
+		GridPoint bestPoint = null;
+		int myX = location.getX();
+		int myY = location.getY();
+		for (int i = myX - 1; i <= myX + 1; i++) {
+			for (int j = myY - 1; j <= myY + 1; j++) {
+				if (i < 0 || j < 0 || i > heatMap.length - 1 || j > heatMap[0].length - 1) {
 					continue;
 				}
-				if (heatMap[i][j] + epsilon * random.nextDouble() > bestHeat) {
-					bestHeat = heatMap[i][j] + epsilon * random.nextDouble();
-					bestPoint = new Point(i, j);
+				if (i == myX && j == myY) {
+					continue;
+				}
+				if (((double) (heatMap[i][j])) + epsilon * random.nextDouble() > bestHeat) {
+					bestHeat = ((double) (heatMap[i][j])) + epsilon * random.nextDouble();
+					bestPoint = new GridPoint(i, j);
 				}
 			}
 		}
 
-		// TODO: transform this point into a direction. return this direction.
-
-		return null;
+		return Direction.getDirection(location, bestPoint);
 	}
 
-	private void floodFill(int strength, int increase, int[][] heatMap, boolean[][] hasBeenFilled, Point location) {
+	public void toStringArray(float[][] array) {
+		System.out.println("Printing array! Size: " + array.length + " x " + array[0].length);
+		String toWrite = "";
+		for (int i = 0; i < array.length; i++) {
+			toWrite += " \n | ";
+			for (int j = 0; j < array[0].length; j++) {
+				toWrite += (array[i][j] + " | ");
+			}
+			toWrite += "\n -------------------------------------------------------------------";
+		}
+		System.out.println(toWrite);
+	}
+
+	public void toStringArray(int[][] array) {
+		System.out.println("Printing array! Size: " + array.length + " x " + array[0].length);
+		String toWrite = "";
+		for (int i = 0; i < array.length; i++) {
+			toWrite += "\n | ";
+			for (int j = 0; j < array[0].length; j++) {
+				toWrite += (array[i][j] + " | ");
+			}
+			toWrite += "\n -------------------------------------------------------------------";
+		}
+		System.out.println(toWrite);
+	}
+
+	private void floodFill(int strength, int increase, int[][] heatMap, boolean[][] hasBeenFilled, GridPoint location) {
+		// if there would be no increase, return
+		if (strength <= 0)
+			return;
 		// this defines the decrease in strength of the heatmap
-		int x = location.x;
-		int y = location.y;
-		if (heatMap[x][y] == 0) {
-			heatMap[x][y] = strength;
-		} else if (heatMap[x][y] < strength) {
-			heatMap[x][y] = strength;
-		} else {
+		int x = location.getX();
+		int y = location.getY();
+		if (heatMap[x][y] >= strength) {
 			return;
 		}
+		heatMap[x][y] = strength;
 		hasBeenFilled[x][y] = true;
 		// decrease the strength to go to adjacent locations
-		strength -= increase < 0 ? 0 : strength;
+		strength -= increase;
+		strength = strength < 0 ? 0 : strength;
 		if (strength > 0) {
 			// Loop through all directions
-			for (int i = x - 1; i < x + 2; i++) {
-				for (int j = y - 1; j < y + 2; j++) {
-					if (i >= 0 && y >= 0 && i <= BosBrandConstants.FOREST_WIDTH && j <= BosBrandConstants.FOREST_HEIGHT) {
-						if (!hasBeenFilled[i][j]) {
-							hasBeenFilled[i][j] = true;
-							floodFill(strength, increase, heatMap, hasBeenFilled, new Point(i, j));
-						}
-					}
+			for (Direction dir : Direction.getAllDirectionsShuffled()) {
+				// Get the location that is in this direction
+				GridPoint locationToCheck = Direction.getPointInDirection(location, dir);
+				// Check if this direction is accessible, and has not been filled yet
+				if (Direction.canIMoveInDirection(locationToCheck, dir) && !hasBeenFilled[locationToCheck.getX()][locationToCheck.getY()]) {
+					// Flood fill from that location
+					floodFill(strength, increase, heatMap, hasBeenFilled, locationToCheck);
 				}
 			}
+			// for (int i = x + 1; i >= x - 1; i--) {
+			// for (int j = y + 1; j >= y - 1; j--) {
+			// if (i >= 0 && j >= 0 && i < BosBrandConstants.FOREST_WIDTH && j < BosBrandConstants.FOREST_HEIGHT) {
+			// if (!hasBeenFilled[i][j]) {
+			// floodFill(strength, increase, heatMap, hasBeenFilled, new GridPoint(i, j));
+			// }
+			// }
+			// }
+			// }
 		}
 
 		return;

@@ -136,38 +136,45 @@ public enum Direction {
 		return getDirection(newFrom, toFrom);
 	}
 
-	public static Iterable<Object> getObjectsInAdjacentDirection(Direction direction, Grid<Object> grid, GridPoint origin) {
+	public static GridPoint getPointInDirection(GridPoint origin, Direction direction) {
 		// We assume here that the X-axis is along the West-East line and the Y-axis is along the North-South line
 		// Also, in RePast the 0,0 cell is at the bottom left of the grid
 		switch (direction) {
 		case NORTHWEST:
 			// North west: 1 index lower in X and 1 index higher in Y
-			return grid.getObjectsAt(origin.getX() - 1, origin.getY() + 1);
+			return new GridPoint(origin.getX() - 1, origin.getY() + 1);
 		case NORTH:
 			// North: equal in X and 1 index higher in Y
-			return grid.getObjectsAt(origin.getX(), origin.getY() + 1);
+			return new GridPoint(origin.getX(), origin.getY() + 1);
 		case NORTHEAST:
 			// North east: 1 index higher in X and 1 index lower in Y
-			return grid.getObjectsAt(origin.getX() + 1, origin.getY() + 1);
+			return new GridPoint(origin.getX() + 1, origin.getY() + 1);
 		case EAST:
 			// East: 1 index higher in X and equal in Y
-			return grid.getObjectsAt(origin.getX() + 1, origin.getY());
+			return new GridPoint(origin.getX() + 1, origin.getY());
 		case SOUTHEAST:
 			// South east: 1 index higher in X and 1 index higher in Y
-			return grid.getObjectsAt(origin.getX() + 1, origin.getY() - 1);
+			return new GridPoint(origin.getX() + 1, origin.getY() - 1);
 		case SOUTH:
 			// South: equal in X and 1 index higher in Y
-			return grid.getObjectsAt(origin.getX(), origin.getY() - 1);
+			return new GridPoint(origin.getX(), origin.getY() - 1);
 		case SOUTHWEST:
 			// South west: 1 index lower in X and 1 index higher in Y
-			return grid.getObjectsAt(origin.getX() - 1, origin.getY() - 1);
+			return new GridPoint(origin.getX() - 1, origin.getY() - 1);
 		case WEST:
 			// West: 1 index lower in X and equal in Y
-			return grid.getObjectsAt(origin.getX() - 1, origin.getY());
+			return new GridPoint(origin.getX() - 1, origin.getY());
 		default:
-			System.out.println("Unknown Direction value found in Direction.getObjects");
+			System.out.println("Unknown Direction value found in Direction.getPointInDirection");
 			return null; // TODO: handle this error
 		}
+	}
+
+	public static Iterable<Object> getObjectsInAdjacentDirection(Direction direction, Grid<Object> grid, GridPoint origin) {
+		// Get the point in that direction
+		GridPoint point = getPointInDirection(origin, direction);
+		// Return all objects on the point
+		return grid.getObjectsAt(point.getX(), point.getY());
 	}
 
 	public static boolean canIMoveInDirection(GridPoint point, Direction direction) {
