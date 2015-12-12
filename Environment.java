@@ -19,17 +19,28 @@ public class Environment {
 	private Grid<Object> grid;
 	private Direction windDirection;
 	private Random rng = new Random();
-	private double evalScore = 0;
-	private int deadTreeCount = 0;
-	private int totalTreeCount = BosBrandConstants.FOREST_HEIGHT * BosBrandConstants.FOREST_WIDTH;
-	private int initialFireFighterCount = 0;
-	private int rainIntensity = 0;
+	private double evalScore;
+	private int forestWidth;
+	private int forestHeight;
+	private int totalTreeCount;
+	private int deadTreeCount;
+	private int initialFireFighterCount;
+	private int rainIntensity;
+	private double fireSpawnChance;
+	private double fireSpreadChance;
 
-	public Environment(Grid<Object> grid, int initialFireFighters, int rainIntensity) {
+	public Environment(Grid<Object> grid, int forestWidth, int forestHeight, int initialFireFighters, int rainIntensity, double fireSpawnChance, double fireSpreadChance) {
 		this.grid = grid;
 		this.windDirection = Direction.NORTH;
+		this.evalScore = 0;
+		this.forestWidth = forestWidth;
+		this.forestHeight = forestHeight;
+		this.totalTreeCount = forestWidth * forestHeight;
+		this.deadTreeCount = 0;
 		this.initialFireFighterCount = initialFireFighters;
 		this.rainIntensity = rainIntensity;
+		this.fireSpawnChance = fireSpawnChance;
+		this.fireSpreadChance = fireSpreadChance;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -47,8 +58,6 @@ public class Environment {
 			this.windDirection = directions.get(rng.nextInt(directions.size()));
 			// Debug
 			// System.out.println(String.format("Wind direction changed to %s", this.windDirection));
-
-			// TODO: Research wind direction changed event in Context
 		}
 
 		// Loop over all rain
@@ -84,10 +93,10 @@ public class Environment {
 							}
 						}
 					} else {
-						// Tree is not burning, check if the tree ignites
-						if (rng.nextDouble() <= BosBrandConstants.TREE_CHANCE_OF_COMBUSTION) {
+						// Tree is not burning, check if fire spawns
+						if (rng.nextDouble() <= fireSpawnChance) {
 							// Create a new Fire object
-							Fire fire = new Fire(grid);
+							Fire fire = new Fire(grid, forestWidth, forestHeight, fireSpreadChance);
 							// Add Fire to the context
 							if (context.add(fire)) {
 								// If the Fire was successfully added, set tree on fire and put the Fire object on the grid
@@ -113,8 +122,8 @@ public class Environment {
 				GridPoint spawnLocation = null;
 				do {
 					// Create a random location
-					int x = rng.nextInt(BosBrandConstants.FOREST_WIDTH);
-					int y = rng.nextInt(BosBrandConstants.FOREST_HEIGHT);
+					int x = rng.nextInt(forestWidth);
+					int y = rng.nextInt(forestHeight);
 					// Set our spawn point to these coordinates
 					spawnLocation = new GridPoint(x, y);
 					// Check if the coordinates are not the coordinates of a spawn point that has already
@@ -122,7 +131,7 @@ public class Environment {
 					// Do this until we find a good location
 				} while (!foundNewLocation);
 				// Create new Rain object
-				Rain rain = new Rain(grid);
+				Rain rain = new Rain(grid, forestWidth, forestHeight);
 				// Add the Rain to the context
 				if (context.add(rain)) {
 					// Move the object to the spawn location

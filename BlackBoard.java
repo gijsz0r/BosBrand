@@ -6,9 +6,10 @@ import repast.simphony.space.grid.GridPoint;
 
 public class BlackBoard {
 
-	private static int[] blackboard = new int[20000];
+	private static final int BLACKBOARD_SIZE = 10601;
+	private static int[] blackboard = new int[BLACKBOARD_SIZE];
 
-	/* CHANNEL DEFINITIONS: [0..20000] */
+	/* CHANNEL DEFINITIONS: [0 ... (BLACKBOARD_SIZE - 1)] */
 
 	/**
 	 * individual firefighter channels reserved from 1 to 600. channels contain:<br\>
@@ -23,12 +24,14 @@ public class BlackBoard {
 	private static final int FIRE_FIGHTER_CHANNEL_OFFSET_LOCATION = 2;
 
 	/**
-	 * forest representation channels reserved from 601 to 10600. channels contain:<br\>
+	 * forest representation channels reserved from 601 to (BLACKBOARD_SIZE - 1). channels contain:<br\>
 	 * (+0) whether or not there is fire on this location in the forest
 	 */
 	private static final int CHANNEL_FOREST = 601;
+	@SuppressWarnings("unused")
 	private static final int FOREST_CHANNEL_COUNT = 1;
-	private static final int FOREST_FIRE_OFFSET = 0;
+	private static final int FOREST_OFFSET_FIRE = 0;
+	private static final int END_OF_FOREST = BLACKBOARD_SIZE - 1;
 
 	// ########### Methods ########################################
 
@@ -86,14 +89,15 @@ public class BlackBoard {
 		return CHANNEL_FOREST + toInt(location);
 	}
 
-	public static void reportLocationStatus(GridPoint location, boolean onFire) {
+	public static int reportLocationStatus(GridPoint location, boolean onFire) {
 		int c = getForestChannel(location);
-		blackboard[c + FOREST_FIRE_OFFSET] = onFire ? 1 : 0;
+		blackboard[c + FOREST_OFFSET_FIRE] = onFire ? 1 : 0;
+		return blackboard[c + FOREST_OFFSET_FIRE];
 	}
 
 	public static boolean getLocationStatus(GridPoint location) {
 		int c = getForestChannel(location);
-		return blackboard[c + FOREST_FIRE_OFFSET] == 1;
+		return blackboard[c + FOREST_OFFSET_FIRE] == 1;
 	}
 
 	public static ArrayList<GridPoint> getFireFighterLocations(int tickCount, int startingTeamMates, int ID) {
@@ -109,17 +113,21 @@ public class BlackBoard {
 	}
 
 	public static ArrayList<GridPoint> getReportedFires() {
-		
 		// Create a list to write to
 		ArrayList<GridPoint> fireList = new ArrayList<GridPoint>();
 		// Loop through the channels, starting at the point where the forests starts and continuing for as many items as there are in the forest
-		for (int i = CHANNEL_FOREST; i < CHANNEL_FOREST + BosBrandConstants.FOREST_HEIGHT * BosBrandConstants.FOREST_WIDTH; i++) {
+		for (int i = CHANNEL_FOREST; i <= END_OF_FOREST; i++) {
 			// Check if the location is reported as being on fire
 			if (blackboard[i] == 1) {
 				// Add this location to the list
-				fireList.add(toGridPoint(i - CHANNEL_FOREST));
+				GridPoint location = toGridPoint(i - CHANNEL_FOREST);
+				// Debug
+				// System.out.println(String.format("Adding (%d,%d) to the list of reported fires", location.getX(), location.getY()));
+				fireList.add(location);
 			}
 		}
+		// Debug
+		// System.out.println(String.format("Currently have %d reported fires", fireList.size()));
 		return fireList;
 	}
 

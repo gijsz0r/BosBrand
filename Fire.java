@@ -18,10 +18,16 @@ import repast.simphony.util.collections.IndexedIterable;
 public class Fire {
 
 	private Grid<Object> grid;
+	private int forestWidth;
+	private int forestHeight;
+	private double chanceOfSpreading;
 	private Random r = new Random();
 
-	public Fire(Grid<Object> grid) {
+	public Fire(Grid<Object> grid, int forestWidth, int forestHeight, double chanceOfSpreading) {
 		this.grid = grid;
+		this.forestWidth = forestWidth;
+		this.forestHeight = forestHeight;
+		this.chanceOfSpreading = chanceOfSpreading;
 	}
 
 	public Fire() {
@@ -41,7 +47,7 @@ public class Fire {
 		// Loop through all directions
 		for (Direction direction : Direction.getAllDirections()) {
 			// Check if this direction does not cross a grid border
-			if (Direction.canIMoveInDirection(pt, direction)) {
+			if (Direction.canIMoveInDirection(pt, direction, forestWidth, forestHeight)) {
 				// Loop through all objects in the neighbouring cells
 				Iterable<Object> cellObjects = Direction.getObjectsInAdjacentDirection(direction, grid, pt);
 				// Convert iterable to a list
@@ -64,9 +70,9 @@ public class Fire {
 						// Define a rain modifier
 						double rainModifier = neighbourTree.getIsRaining() ? BosBrandConstants.RAIN_MODIFIER : 1.0;
 						// Chance of Fire moving = Base Chance * Rain Modifier * Wind Modifier
-						if (r.nextDouble() <= (BosBrandConstants.CHANCE_OF_FIRE_SPREADING * windModifier * rainModifier)) {
+						if (r.nextDouble() <= (chanceOfSpreading * windModifier * rainModifier)) {
 							// Create a new Fire object
-							Fire fire = new Fire(grid);
+							Fire fire = new Fire(grid, forestWidth, forestHeight, chanceOfSpreading);
 							// Add the Fire to the context
 							if (context.add(fire)) {
 								// If the Fire was successfully added, set the tree on the cell on fire and place the Fire on the grid

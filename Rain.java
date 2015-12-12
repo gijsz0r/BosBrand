@@ -8,10 +8,14 @@ import repast.simphony.util.collections.IndexedIterable;
 public class Rain {
 
 	private Grid<Object> grid;
+	private int forestWidth;
+	private int forestHeight;
 	private int myRemainingTime = 0;
 
-	public Rain(Grid<Object> grid) {
+	public Rain(Grid<Object> grid, int forestWidth, int forestHeight) {
 		this.grid = grid;
+		this.forestWidth = forestWidth;
+		this.forestHeight = forestHeight;
 		this.myRemainingTime = BosBrandConstants.RAIN_LIFETIME;
 	}
 
@@ -29,7 +33,7 @@ public class Rain {
 				// Get the current direction of the wind
 				Direction windDirection = ((Environment) possibleEnvironments.get(0)).getWindDirection();
 				// Move in that direction
-				if (Direction.canIMoveInDirection(oldLocation, windDirection)) {
+				if (Direction.canIMoveInDirection(oldLocation, windDirection, forestWidth, forestHeight)) {
 					// Execute move
 					GridPoint newLocation = moveTowards(windDirection);
 					// Toggle rain on new location

@@ -1,5 +1,6 @@
 package BosBrand;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,19 +22,28 @@ import repast.simphony.util.ContextUtils;
 public class FireFighter {
 
 	private Grid<Object> grid;
-	public boolean fightingFire;
 	private int id;
+	private int lookingDistance;
+	private int nrStartingTeamMates;
 	private int HP;
 	private int bounty;
 	private int bountyModifier;
-	private int startingTeamMates;
+	private int forestWidth;
+	private int forestHeight;
+	private float heatmapFireCoefficient;
+	private float heatmapFireFighterCoefficient;
 
-	public FireFighter(Grid<Object> grid, int id, int startingTeamMates) {
+	public FireFighter(Grid<Object> grid, int id, int fireFighterLookingDistance, int nrStartingTeamMates, int forestWidth, int forestHeight, double heatmapFireCoefficient, double heatmapFireFighterCoefficient) {
 		this.grid = grid;
 		this.id = id;
+		this.lookingDistance = fireFighterLookingDistance;
+		this.nrStartingTeamMates = nrStartingTeamMates;
 		this.HP = BosBrandConstants.FIREFIGHTER_STARTING_HEALTH;
 		this.bountyModifier = BosBrandConstants.FIREFIGHTER_DEFAULT_BOUNTY_MODIFIER;
-		this.startingTeamMates = startingTeamMates;
+		this.forestWidth = forestWidth;
+		this.forestHeight = forestHeight;
+		this.heatmapFireCoefficient = (float)heatmapFireCoefficient;
+		this.heatmapFireFighterCoefficient = (float)heatmapFireFighterCoefficient;
 	}
 
 	public FireFighter() {
@@ -95,70 +105,12 @@ public class FireFighter {
 				return;
 			}
 		}
+		
+		// Check for any dead trees nearby
+		checkForDeadTrees(pt);
 
+		// Patrol moving the Heat-maps
 		moveTowards(patrolSmart(pt, tickCount));
-
-		// // Make a list with all cells containing allies
-		// GridCellNgh<FireFighter> allyNeighbourHoodCreator = new GridCellNgh<FireFighter>(grid, pt, FireFighter.class, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
-		// List<GridCell<FireFighter>> gridCells = allyNeighbourHoodCreator.getNeighborhood(true);
-		// // Debug
-		// // System.out.println(String.format("Amount of cells found: %d", gridCells.size()));
-		// // Filter on GridCells containing at least one item
-		// List<GridCell<FireFighter>> allyGridCells = gridCells.stream().filter(i -> i.items().iterator().hasNext()).collect(Collectors.toList());
-		// // Check if any cells were found at all
-		// if (allyGridCells.size() > 0) {
-		// // Check if any ally is currently fighting fire
-		// List<GridCell<FireFighter>> fightingAllies = allyGridCells.stream().filter(i -> i.items().iterator().hasNext()).filter(j -> j.items().iterator().next().fightingFire).collect(Collectors.toList());
-		// // If any
-		// if (fightingAllies.size() > 0) {
-		// GridCell<FireFighter> ally = null;
-		// // Debug
-		// // System.out.println(String.format("Found %d nearby allies fighting fire!", fightingAllies.size()));
-		// // Sense closest
-		// OptionalInt minDistance = fightingAllies.stream().mapToInt(i -> (int) grid.getDistance(pt, i.getPoint())).min();
-		// if (minDistance.isPresent()) {
-		// // Debug
-		// // System.out.println(String.format("Nearest fighting ally distance: %d", minDistance.getAsInt()));
-		// // Get the point of the closest fighting ally
-		// Optional<GridCell<FireFighter>> close = fightingAllies.stream().filter(i -> (int) grid.getDistance(pt, i.getPoint()) == minDistance.getAsInt()).findFirst();
-		// if (close.isPresent()) {
-		// ally = close.get();
-		// }
-		// } else {
-		// // Debug
-		// // System.out.println("No distance to nearest fighting ally found.");
-		// }
-		//
-		// if (ally != null) {
-		// // Move towards the closest fighting ally
-		// moveTowards(ally.getPoint());
-		// return;
-		// } else {
-		// patrol();
-		// return;
-		// }
-		// } else {
-		// // This means there are allies close, but none are fighting fire
-		// if (firePoint != null) {
-		// // Move towards the closest fire
-		// moveTowards(firePoint);
-		// return;
-		// } else {
-		// patrol();
-		// return;
-		// }
-		// }
-		// } else {
-		// // If we have a fire nearby, move there
-		// if (firePoint != null) {
-		// // Move towards the closest fire
-		// moveTowards(firePoint);
-		// return;
-		// } else {
-		// patrol();
-		// return;
-		// }
-		// }
 	}
 
 	public List<GridCell<Fire>> getFiresInDistance(GridPoint pt, int distance) {
@@ -171,14 +123,14 @@ public class FireFighter {
 
 	public GridPoint checkForFire(GridPoint pt) {
 		// Get all the Cells that contain Fire within the distance we can see
-		List<GridCell<Fire>> fireGridCells = getFiresInDistance(pt, BosBrandConstants.FIREFIGHTER_LOOKING_DISTANCE);
+		List<GridCell<Fire>> fireGridCells = getFiresInDistance(pt, this.lookingDistance);
 		// Check if any fires were detected
 		if (fireGridCells.size() > 0) {
-			// System.out.println("FireFighter " + id + " is reporting fires");
+			// Debug
+			// System.out.println("FireFighter " + id + " is reporting " + fireGridCells.size() + " fires");
 			// Report each fire location to the blackboard
-			// fireGridCells.stream().forEach(i -> BlackBoard.reportLocationStatus(i.getPoint(), true));
-
 			for (int i = 0; i < fireGridCells.size(); i++) {
+				// fireGridCells.stream().forEach(i -> BlackBoard.reportLocationStatus(i.getPoint(), true));
 				BlackBoard.reportLocationStatus(fireGridCells.get(i).getPoint(), true);
 			}
 
@@ -209,6 +161,23 @@ public class FireFighter {
 		return null;
 	}
 
+	public List<GridCell<DeadTreeDummy>> getDeadTreesInDistance(GridPoint pt, int distance) {
+		// Make a list with all cells containing fire
+		GridCellNgh<DeadTreeDummy> dtdNeighbourhoodCreator = new GridCellNgh<DeadTreeDummy>(grid, pt, DeadTreeDummy.class, distance, distance);
+		List<GridCell<DeadTreeDummy>> gridCells = dtdNeighbourhoodCreator.getNeighborhood(true);
+		// Return GridCells containing at least one item
+		return gridCells.stream().filter(i -> i.items().iterator().hasNext()).collect(Collectors.toList());
+	}
+
+	public void checkForDeadTrees(GridPoint pt) {
+		// Get all the Cells that contain DeadTreeDummy within the distance we can see
+		List<GridCell<DeadTreeDummy>> dtdGridCells = getDeadTreesInDistance(pt, this.lookingDistance);
+		// Report each location to the blackboard, dead trees can't be on fire anymore
+		for (int i = 0; i < dtdGridCells.size(); i++) {
+			BlackBoard.reportLocationStatus(dtdGridCells.get(i).getPoint(), false);
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	public void extinguishFire(GridPoint pt) {
 		// Loop through the objects at the location
@@ -260,7 +229,7 @@ public class FireFighter {
 		// System.out.println(String.format("Location before move: %d,%d", grid.getLocation(this).getX(), grid.getLocation(this).getY()));
 
 		// Check if we can even more in the desired direction
-		if (Direction.canIMoveInDirection(this.getLocation(), direction)) {
+		if (Direction.canIMoveInDirection(this.getLocation(), direction, forestWidth, forestHeight)) {
 			// This should be self explanatory
 			switch (direction) {
 			case NORTH:
@@ -341,7 +310,7 @@ public class FireFighter {
 			// Do random move
 			int choice = r.nextInt(directions.size());
 			chosenDirection = directions.get(choice);
-		} while (!Direction.canIMoveInDirection(this.getLocation(), chosenDirection));
+		} while (!Direction.canIMoveInDirection(this.getLocation(), chosenDirection, forestWidth, forestHeight));
 		// Debug
 		// System.out.println(String.format("Patrolling in direction: %s", chosenDirection.toString()));
 		// Execute move
@@ -351,9 +320,9 @@ public class FireFighter {
 	private Direction patrolSmart(GridPoint location, int tickCount) {
 		// create heatmap
 		int initialValue = 0;
-		int[][] fireFighterLayer = new int[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
-		int[][] fireLayer = new int[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
-		int[][] distanceLayer = new int[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
+		int[][] fireFighterLayer = new int[forestWidth][forestHeight];
+		int[][] fireLayer = new int[forestWidth][forestHeight];
+		int[][] distanceLayer = new int[forestWidth][forestHeight];
 		for (int i = 0; i < fireLayer.length; i++) {
 			for (int j = 0; j < fireLayer[0].length; j++) {
 				fireFighterLayer[i][j] = initialValue;
@@ -361,16 +330,14 @@ public class FireFighter {
 				distanceLayer[i][j] = initialValue;
 			}
 		}
-		boolean[][] hasBeenFilled = new boolean[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
 		// fill heatmap with firefighters
-		ArrayList<GridPoint> fireFighterList = BlackBoard.getFireFighterLocations(tickCount, startingTeamMates, this.id);
+		ArrayList<GridPoint> fireFighterList = BlackBoard.getFireFighterLocations(tickCount, nrStartingTeamMates, this.id);
 
 		// floodfill from firefighters, with decreasing strength (we do not want to go to a square if the square has a firefighter on it
 		for (GridPoint f : fireFighterList) {
 			int strength = 100;
-			int decrease = 1;
-			floodFill(strength, decrease, fireFighterLayer, hasBeenFilled, f);
-			hasBeenFilled = new boolean[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
+			int decrease = 20;
+			floodFill(strength, decrease, fireFighterLayer, f);
 		}
 
 		ArrayList<GridPoint> fireList = BlackBoard.getReportedFires();
@@ -381,17 +348,15 @@ public class FireFighter {
 		for (GridPoint f : fireList) {
 			int strength = 100;
 			int decrease = 1;
-			floodFill(strength, decrease, fireLayer, hasBeenFilled, f);
-			hasBeenFilled = new boolean[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
+			floodFill(strength, decrease, fireLayer, f);
 		}
 
 		int distanceStrength = 100;
 		int distanceDecrease = 1;
-		floodFill(distanceStrength, distanceDecrease, distanceLayer, hasBeenFilled, location);
-		hasBeenFilled = new boolean[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
+		floodFill(distanceStrength, distanceDecrease, distanceLayer, location);
 
 		// create the final heatmap
-		float[][] heatMap = new float[BosBrandConstants.FOREST_WIDTH][BosBrandConstants.FOREST_HEIGHT];
+		float[][] heatMap = new float[forestWidth][forestHeight];
 
 		// find the maximum values of the layers, to normalize
 		float fireMax = Math.max(1, Arrays.stream(fireLayer).flatMapToInt(Arrays::stream).max().getAsInt());
@@ -399,8 +364,8 @@ public class FireFighter {
 		float distanceMax = Math.max(1, Arrays.stream(distanceLayer).flatMapToInt(Arrays::stream).max().getAsInt());
 
 		// decide the coefficients of the layers to decide the importance of them
-		float fireLayerCoefficient = 1.0f;
-		float fireFighterLayerCoefficient = 0f;
+		float fireLayerCoefficient = heatmapFireCoefficient;
+		float fireFighterLayerCoefficient = heatmapFireFighterCoefficient;
 		float distanceCoefficient = 0.0f;
 
 		// fill every element of the heatmap with the separate layers
@@ -411,13 +376,13 @@ public class FireFighter {
 		}
 
 		// Debug
-		// System.out.println("Heatmap!");
+		// System.out.println("Heatmap for agent " + this.id + " on tick count " + tickCount);
 		// toStringArray(heatMap);
-		 System.out.println("Fire Layer!");
-		 toStringArray(fireLayer);
-		// System.out.println("Firefighter Layer!");
+		// System.out.println("Fire Layer for agent " + this.id + " on tick count " + tickCount);
+		// toStringArray(fireLayer);
+		// System.out.println("Firefighter Layer for agent " + this.id + " on tick count " + tickCount);
 		// toStringArray(fireFighterLayer);
-		// System.out.println("Distance Layer!");
+		// System.out.println("Distance Layer for agent " + this.id + " on tick count " + tickCount);
 		// toStringArray(distanceLayer);
 
 		// decide how to find where to go (best tile around firefighter, tile that leads to best tile on map)
@@ -445,33 +410,7 @@ public class FireFighter {
 		return Direction.getDirection(location, bestPoint);
 	}
 
-	public void toStringArray(float[][] array) {
-		System.out.println("Printing array! Size: " + array.length + " x " + array[0].length);
-		String toWrite = "";
-		for (int i = 0; i < array.length; i++) {
-			toWrite += " \n | ";
-			for (int j = 0; j < array[0].length; j++) {
-				toWrite += (array[i][j] + " | ");
-			}
-			toWrite += "\n -------------------------------------------------------------------";
-		}
-		System.out.println(toWrite);
-	}
-
-	public void toStringArray(int[][] array) {
-		System.out.println("Printing array! Size: " + array.length + " x " + array[0].length);
-		String toWrite = "";
-		for (int i = 0; i < array.length; i++) {
-			toWrite += "\n | ";
-			for (int j = 0; j < array[0].length; j++) {
-				toWrite += (array[i][j] + " | ");
-			}
-			toWrite += "\n -------------------------------------------------------------------";
-		}
-		System.out.println(toWrite);
-	}
-
-	private void floodFill(int strength, int increase, int[][] heatMap, boolean[][] hasBeenFilled, GridPoint location) {
+	private void floodFill(int strength, int decrease, int[][] heatMap, GridPoint location) {
 		// if there would be no increase, return
 		if (strength <= 0)
 			return;
@@ -482,33 +421,50 @@ public class FireFighter {
 			return;
 		}
 		heatMap[x][y] = strength;
-		hasBeenFilled[x][y] = true;
 		// decrease the strength to go to adjacent locations
-		strength -= increase;
-		strength = strength < 0 ? 0 : strength;
+		strength -= decrease;
+		if (strength < 0) {
+			strength = 0;
+		}
 		if (strength > 0) {
 			// Loop through all directions
 			for (Direction dir : Direction.getAllDirectionsShuffled()) {
-				// Get the location that is in this direction
-				GridPoint locationToCheck = Direction.getPointInDirection(location, dir);
 				// Check if this direction is accessible, and has not been filled yet
-				if (Direction.canIMoveInDirection(locationToCheck, dir) && !hasBeenFilled[locationToCheck.getX()][locationToCheck.getY()]) {
+				if (Direction.canIMoveInDirection(location, dir, forestWidth, forestHeight)) {
+					// Get the location that is in this direction
+					GridPoint locationToCheck = Direction.getPointInDirection(location, dir);
 					// Flood fill from that location
-					floodFill(strength, increase, heatMap, hasBeenFilled, locationToCheck);
+					floodFill(strength, decrease, heatMap, locationToCheck);
 				}
 			}
-			// for (int i = x + 1; i >= x - 1; i--) {
-			// for (int j = y + 1; j >= y - 1; j--) {
-			// if (i >= 0 && j >= 0 && i < BosBrandConstants.FOREST_WIDTH && j < BosBrandConstants.FOREST_HEIGHT) {
-			// if (!hasBeenFilled[i][j]) {
-			// floodFill(strength, increase, heatMap, hasBeenFilled, new GridPoint(i, j));
-			// }
-			// }
-			// }
-			// }
 		}
 
 		return;
+	}
 
+	public void toStringArray(float[][] array) {
+		System.out.println("Printing array! Size: " + array.length + " x " + array[0].length);
+		String toWrite = "";
+		for (int y = array.length - 1; y >= 0; y--) {
+			toWrite += "\n | ";
+			for (int x = 0; x <= array.length - 1; x++) {
+				toWrite += (new DecimalFormat("0.00").format(array[x][y]) + " | ");
+			}
+			toWrite += "\n ------------------------------------------------------------------------------------------------";
+		}
+		System.out.println(toWrite);
+	}
+
+	public void toStringArray(int[][] array) {
+		System.out.println("Printing array! Size: " + array.length + " x " + array[0].length);
+		String toWrite = "";
+		for (int y = array.length - 1; y >= 0; y--) {
+			toWrite += "\n | ";
+			for (int x = 0; x <= array.length - 1; x++) {
+				toWrite += (array[x][y] + " | ");
+			}
+			toWrite += "\n ------------------------------------------------------------------------------------------------";
+		}
+		System.out.println(toWrite);
 	}
 }

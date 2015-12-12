@@ -177,13 +177,13 @@ public enum Direction {
 		return grid.getObjectsAt(point.getX(), point.getY());
 	}
 
-	public static boolean canIMoveInDirection(GridPoint point, Direction direction) {
+	public static boolean canIMoveInDirection(GridPoint point, Direction direction, int forestWidth, int forestHeight) {
 		// Check if we are using WrapAroundBorders, because in that case we can just return true
 		if (BosBrandConstants.BORDER_TYPE instanceof repast.simphony.space.grid.WrapAroundBorders)
 			return true;
 		// Determine if the coordinates are on any of the borders of the grid
-		boolean notOnNorthBorder = point.getY() < BosBrandConstants.FOREST_HEIGHT - 1;
-		boolean notOnEastBorder = point.getX() < BosBrandConstants.FOREST_WIDTH - 1;
+		boolean notOnEastBorder = point.getX() < forestWidth - 1;
+		boolean notOnNorthBorder = point.getY() < forestHeight - 1;
 		boolean notOnWestBorder = point.getX() > 0;
 		boolean notOnSouthBorder = point.getY() > 0;
 		boolean movementAllowed = false;

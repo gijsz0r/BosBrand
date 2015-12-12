@@ -18,22 +18,26 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 
 	@Override
 	public Context<Object> build(Context<Object> context) {
+		// Read the simulation's parameters, as defined in the parameters file
+		Parameters params = RunEnvironment.getInstance().getParameters();
+
+		// Create some parameters
+		int forestWidth = params.getInteger("forest_width");
+		int forestHeight = params.getInteger("forest_height");
+		
 		// Set ID for the context. Note: should be same as package
 		context.setId("BosBrand");
 		// Create a grid. Note: name should be 'grid' for some reason
 		// Parameters are type of border handling, how to add items to the grid and the dimensions of the grid
 		GridFactory gridFactory = GridFactoryFinder.createGridFactory(null);
-		Grid<Object> grid = gridFactory.createGrid("grid", context, new GridBuilderParameters<Object>(BosBrandConstants.BORDER_TYPE, new SimpleGridAdder<Object>(), true, BosBrandConstants.FOREST_WIDTH, BosBrandConstants.FOREST_HEIGHT));
-
-		// Read the simulation's parameters, as defined in the parameters file
-		Parameters params = RunEnvironment.getInstance().getParameters();
+		Grid<Object> grid = gridFactory.createGrid("grid", context, new GridBuilderParameters<Object>(BosBrandConstants.BORDER_TYPE, new SimpleGridAdder<Object>(), true, forestWidth, forestHeight));
 
 		// Set the tree type for this run
 		TreeType treeType = TreeType.PALM;
 		// Get the tree HP modifier
-		int treeHPModifier = (Integer) params.getValue("tree_hp_modifier");
+		int treeHPModifier = params.getInteger("tree_hp_modifier");
 		// We are making a tree on each cell
-		for (int i = 0; i < BosBrandConstants.FOREST_WIDTH * BosBrandConstants.FOREST_HEIGHT; i++) {
+		for (int i = 0; i < forestWidth * forestHeight; i++) {
 			// Add the Tree objects to the context
 			context.add(new Tree(treeType, treeHPModifier));
 		}
@@ -42,9 +46,9 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 		// Note that we only have Tree objects in the context so far
 		for (Object tree : context) {
 			// The X-coordinate for this Tree will be the modulus of the width of the forest
-			int x = placer % BosBrandConstants.FOREST_WIDTH;
+			int x = placer % forestWidth;
 			// The Y-coordinate for this Tree will be the floor of dividing placer by the width of the forest
-			int y = (int) (placer / BosBrandConstants.FOREST_WIDTH);
+			int y = (int) (placer / forestWidth);
 			// Place the Tree in the correct location on the grid
 			grid.moveTo(tree, x, y);
 			// Tell the tree to save it's location
@@ -54,17 +58,21 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 		}
 
 		// Get the amount of firefighters
-		int fireFighterCount = (Integer) params.getValue("firefighter_count");
+		int fireFighterCount = params.getInteger("firefighter_count");
+		int fireFighterLookingDistance = params.getInteger("firefighter_looking_distance");
+		double fireFighterFireCoefficient = params.getDouble("firefighter_fire_coefficient");
+		double fireFighterFireFighterCoefficient = params.getDouble("firefighter_firefighter_coefficient");
 		// Add a bunch of FireFighters
 		for (int i = 0; i < fireFighterCount; i++) {
-			context.add(new FireFighter(grid, i, fireFighterCount));
+			context.add(new FireFighter(grid, i, fireFighterLookingDistance, fireFighterCount, forestWidth, forestHeight, fireFighterFireCoefficient, fireFighterFireFighterCoefficient));
 		}
 
 		// Get the amount of initial fires
-		int fireCount = (Integer) params.getValue("initial_fire_count");
+		int fireCount = params.getInteger("initial_fire_count");
+		double fireSpreadChance = params.getDouble("environment_fire_spread_chance");
 		// Add a bunch of Fires
 		for (int i = 0; i < fireCount; i++) {
-			context.add(new Fire(grid));
+			context.add(new Fire(grid, forestWidth, forestHeight, fireSpreadChance));
 		}
 
 		// Create a list of locations that have something spawned in them
@@ -79,8 +87,8 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 				GridPoint spawnLocation = null;
 				do {
 					// Create a random location
-					int x = r.nextInt(BosBrandConstants.FOREST_WIDTH);
-					int y = r.nextInt(BosBrandConstants.FOREST_HEIGHT);
+					int x = r.nextInt(forestWidth);
+					int y = r.nextInt(forestHeight);
 					// Set our spawn point to these coordinates
 					spawnLocation = new GridPoint(x, y);
 					// Check if the coordinates are not the coordinates of a spawn point that has already
@@ -92,15 +100,17 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 			}
 		}
 
-		// Get the rain intensity for this run
-		int rainIntensity = (Integer) params.getValue("rain_intensity");
+		// Get the environment parameters for this run
+		int rainIntensity = params.getInteger("rain_intensity");
+		double fireSpawnChance = params.getDouble("environment_fire_spawn_chance");
 		// We add the environment that controls various environmental elements
-		context.add(new Environment(grid, fireFighterCount, rainIntensity));
+		context.add(new Environment(grid, forestWidth, forestHeight, fireFighterCount, rainIntensity, fireSpawnChance, fireSpreadChance));
 		// Debug
 		System.out.println("Environment created!");
 
 		// Tell the RunEnvironment we want to stop the run after X ticks
-		RunEnvironment.getInstance().endAt(BosBrandConstants.RUN_TICKS);
+		int runtime = params.getInteger("runtime");
+		RunEnvironment.getInstance().endAt(runtime);
 
 		// Return the created context
 		return context;
