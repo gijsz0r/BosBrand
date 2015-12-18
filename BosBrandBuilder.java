@@ -18,13 +18,16 @@ public class BosBrandBuilder implements ContextBuilder<Object> {
 
 	@Override
 	public Context<Object> build(Context<Object> context) {
+		// Reset the blackboard
+		BlackBoard.resetBlackBoard();
+		
 		// Read the simulation's parameters, as defined in the parameters file
 		Parameters params = RunEnvironment.getInstance().getParameters();
 
 		// Create some parameters
 		int forestWidth = params.getInteger("forest_width");
 		int forestHeight = params.getInteger("forest_height");
-		
+
 		// Set ID for the context. Note: should be same as package
 		context.setId("BosBrand");
 		// Create a grid. Note: name should be 'grid' for some reason

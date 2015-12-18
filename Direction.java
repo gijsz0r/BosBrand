@@ -105,7 +105,6 @@ public enum Direction {
 		int dY = to.y - from.y;
 		// Debug
 		// System.out.println(String.format("dX: %d ; dY: %d", dX, dY));
-
 		if (dX < 0 && dY < 0)
 			return SOUTHWEST; // lower in both axes: SouthWest
 		if (dX == 0 && dY < 0)
@@ -187,7 +186,7 @@ public enum Direction {
 		boolean notOnWestBorder = point.getX() > 0;
 		boolean notOnSouthBorder = point.getY() > 0;
 		boolean movementAllowed = false;
-		// For each direction we check if the current X and Y coordinates
+		// Check if the point is not on a border that would be crossed by going in that direction
 		switch (direction) {
 		case NORTHWEST:
 			movementAllowed = notOnNorthBorder && notOnWestBorder;

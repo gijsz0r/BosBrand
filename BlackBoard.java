@@ -13,8 +13,8 @@ public class BlackBoard {
 
 	/**
 	 * individual firefighter channels reserved from 1 to 600. channels contain:<br\>
-	 * (+0) id of this firefighter;<br\>
-	 * (+1) alive indicator;<br\>
+	 * (+0) id of this firefighter<br\>
+	 * (+1) alive indicator<br\>
 	 * (+2) current position of this firefighter<br\>
 	 */
 	private static final int CHANNEL_FIRE_FIGHTER = 1;
@@ -35,26 +35,10 @@ public class BlackBoard {
 
 	// ########### Methods ########################################
 
-	/**
-	 * returns the corresponding channel for the given firefighter without offset.<br\>
-	 * Offsets are:<br\>
-	 * (+0) id of this firefighter;<br\>
-	 * (+1) alive indicator;<br\>
-	 * (+2) current position of this soldier<br\>
-	 * 
-	 * @param fireFighterId
-	 * @return
-	 */
 	private static int getFireFighterChannel(int fireFighterId) {
 		return CHANNEL_FIRE_FIGHTER + fireFighterId * FIRE_FIGHTER_CHANNEL_COUNT;
 	}
 
-	/**
-	 * for FireFighter. should be called at the beginning of each step. FireFighter broadcasts that he is still alive and his current GridPoint
-	 * 
-	 * @param fireFighterId
-	 * @param pt
-	 */
 	public static void signalAlive(int fireFighterId, int tickCount, GridPoint pt) {
 		// Get the firefighter's channel
 		int c = getFireFighterChannel(fireFighterId);
@@ -63,12 +47,6 @@ public class BlackBoard {
 		blackboard[c + FIRE_FIGHTER_CHANNEL_OFFSET_LOCATION] = toInt(pt);
 	}
 
-	/**
-	 * returns whether the firefighter is still alive
-	 * 
-	 * @param fireFighterId
-	 * @return
-	 */
 	public static boolean isAlive(int fireFighterId, int tickCount) {
 		// Get the firefighter's channel
 		int c = getFireFighterChannel(fireFighterId);
@@ -89,26 +67,34 @@ public class BlackBoard {
 		return CHANNEL_FOREST + toInt(location);
 	}
 
-	public static int reportLocationStatus(GridPoint location, boolean onFire) {
+	public static void reportLocationStatus(GridPoint location, boolean onFire) {
+		// Get the location's channel
 		int c = getForestChannel(location);
+		// Set the provided fire-status into the blackboard
 		blackboard[c + FOREST_OFFSET_FIRE] = onFire ? 1 : 0;
-		return blackboard[c + FOREST_OFFSET_FIRE];
 	}
 
 	public static boolean getLocationStatus(GridPoint location) {
+		// Get the location's channel
 		int c = getForestChannel(location);
+		// Return whether or not there is fire on the provided location
 		return blackboard[c + FOREST_OFFSET_FIRE] == 1;
 	}
 
 	public static ArrayList<GridPoint> getFireFighterLocations(int tickCount, int startingTeamMates, int ID) {
+		// Make a list to write to
 		ArrayList<GridPoint> fireFighterList = new ArrayList<GridPoint>();
+		// Loop through all channels, starting at where the firefighter's channels start, and incrementing by the amount of channels each firefighter has
 		for (int i = CHANNEL_FIRE_FIGHTER; i < CHANNEL_FIRE_FIGHTER + (FIRE_FIGHTER_CHANNEL_COUNT * startingTeamMates); i += FIRE_FIGHTER_CHANNEL_COUNT) {
+			// Read the ID
 			int fireFighterID = blackboard[i + FIRE_FIGHTER_CHANNEL_OFFSET_ID];
+			// Check if each firefighter is not the provided ID and still alive
 			if (ID != fireFighterID && isAlive(fireFighterID, tickCount)) {
+				// Add the firefighter's location to the list
 				fireFighterList.add(toGridPoint(blackboard[i + FIRE_FIGHTER_CHANNEL_OFFSET_LOCATION]));
 			}
 		}
-
+		// Return the created list of fire fighters
 		return fireFighterList;
 	}
 
@@ -146,4 +132,8 @@ public class BlackBoard {
 		return new GridPoint(encoded / 100, encoded % 100);
 	}
 
+	public static void resetBlackBoard() {
+		blackboard = new int[BLACKBOARD_SIZE];
+	}
+	
 }
